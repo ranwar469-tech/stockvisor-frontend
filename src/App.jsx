@@ -2,6 +2,10 @@ import { Routes, Route, Link } from 'react-router-dom'
 import './App.css'
 import Home from './pages/Home'
 import About from './pages/About'
+import Portfolio from './pages/Portfolio'
+import Community from './pages/Community'
+import News from './pages/News'
+import Tips from './pages/Tips'
 
 function App() {
   return (

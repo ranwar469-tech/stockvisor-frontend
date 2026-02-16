@@ -1,34 +1,60 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { Routes, Route, Link } from 'react-router-dom'
 import './App.css'
+import Home from './pages/Home'
+import About from './pages/About'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="min-h-screen bg-slate-900 text-white">
+      <div className="max-w-7xl mx-2 px-4 py-4">
+        <div className="flex items-center">
+          <h1 className="text-4xl font-bold text-blue-400">StockVisor</h1>
+        </div>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+      <nav className="bg-slate-800 border-b-2 border-blue-600 shadow-lg">
+        <ul className="flex gap-8 px-6 py-3">
+          <li>
+            <Link to="/" className="hover:text-blue-400 text-lg transition-colors font-medium">
+              Home
+            </Link>
+          </li>
+          <li>
+            <Link to="/about" className="hover:text-blue-400 text-lg transition-colors font-medium">
+              About
+            </Link>
+          </li>
+          <li>
+            <Link to="/portfolio" className="hover:text-blue-400 text-lg transition-colors font-medium">
+              Portfolio
+            </Link>
+          </li>
+          <li>
+            <Link to="/community" className="hover:text-blue-400 text-lg transition-colors font-medium">
+              Community
+            </Link>
+          </li>
+          <li>
+            <Link to="/news" className="hover:text-blue-400 text-lg transition-colors font-medium">
+              News
+            </Link>
+          </li>
+          <li>
+            <Link to="/tips" className="hover:text-blue-400 text-lg transition-colors font-medium">
+              Tips
+            </Link>
+          </li>
+        </ul>
+      </nav>
+
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/portfolio" element={<Portfolio />} />
+        <Route path="/community" element={<Community />} />
+        <Route path="/news" element={<News />} />
+        <Route path="/tips" element={<Tips />} />
+      </Routes>
+    </div>
   )
 }
 

@@ -16,7 +16,7 @@ function Layout() {
           <div className="flex items-center gap-6 ml-auto">
             <button
               onClick={toggleTheme}
-              className="px-3 py-1 rounded border border-blue-400 hover:bg-blue-400 hover:text-white dark:hover:bg-blue-500 transition"
+              className="px-3 py-1 border-blue-400 hover:bg-blue-400 hover:text-white dark:hover:bg-blue-500 transition"
             >
               {theme === "dark" ? "🌙 Dark" : "☀️ Light"}
             </button>

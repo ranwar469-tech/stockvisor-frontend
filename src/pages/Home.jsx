@@ -1,62 +1,157 @@
+import { useState } from 'react';
+import { TrendingUp, TrendingDown, DollarSign, Activity, BarChart3, Star } from 'lucide-react';
+
 export default function Home() {
+  const [favorites, setFavorites] = useState([]);
+  const [activeTab, setActiveTab] = useState('all');
+
   const stocks = [
-    { symbol: 'AAPL', name: 'Apple Inc.', price: 178.50, change: 2.45 },
-    { symbol: 'MSFT', name: 'Microsoft Corp.', price: 380.25, change: -1.20 },
-    { symbol: 'GOOGL', name: 'Alphabet Inc.', price: 142.80, change: 3.15 },
-    { symbol: 'TSLA', name: 'Tesla Inc.', price: 245.30, change: 5.60 },
+    { symbol: 'AAPL', name: 'Apple Inc.', price: 178.45, change: 2.34, changePercent: 1.33, volume: '52.3M' },
+    { symbol: 'GOOGL', name: 'Alphabet Inc.', price: 141.80, change: -1.20, changePercent: -0.84, volume: '28.7M' },
+    { symbol: 'MSFT', name: 'Microsoft Corp.', price: 378.91, change: 5.67, changePercent: 1.52, volume: '31.2M' },
+    { symbol: 'AMZN', name: 'Amazon.com Inc.', price: 151.94, change: 3.21, changePercent: 2.16, volume: '45.8M' },
+    { symbol: 'TSLA', name: 'Tesla Inc.', price: 242.84, change: -4.15, changePercent: -1.68, volume: '89.4M' },
+    { symbol: 'NVDA', name: 'NVIDIA Corp.', price: 722.48, change: 12.30, changePercent: 1.73, volume: '38.9M' },
   ];
 
-  return (
-    <div className="min-h-screen bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-8">
-      <div className="max-w-7xl mx-auto">
-        <h2 className="text-4xl font-bold mb-2 text-blue-400">Market Dashboard</h2>
-        <p className="text-slate-600 dark:text-slate-400 mb-8">Track your favorite stocks in real-time</p>
+  const marketStats = [
+    { label: 'Market Cap', value: '$45.2T', icon: DollarSign },
+    { label: 'Total Volume', value: '286.3M', icon: Activity },
+    { label: 'Active Stocks', value: '6,247', icon: BarChart3 },
+  ];
 
-        {/* Portfolio Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-gradient-to-br from-blue-100 to-blue-50 dark:from-slate-800 dark:to-slate-700 p-6 rounded-lg border border-blue-600 shadow-lg">
-            <p className="text-slate-700 dark:text-slate-300 text-sm">Portfolio Value</p>
-            <p className="text-3xl font-bold text-blue-400 mt-2">$45,230.50</p>
+  const toggleFavorite = (symbol) => {
+    setFavorites(prev =>
+      prev.includes(symbol) ? prev.filter(s => s !== symbol) : [...prev, symbol]
+    );
+  };
+
+  const filteredStocks = activeTab === 'favorites'
+    ? stocks.filter(s => favorites.includes(s.symbol))
+    : stocks;
+
+  return (
+    <div>
+      {/* Page Header */}
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Market Dashboard</h2>
+        <p className="text-slate-600 dark:text-slate-400">Real-time stock prices and market insights at your fingertips</p>
+      </div>
+
+      {/* Market Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {marketStats.map((stat) => (
+          <div
+            key={stat.label}
+            className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-blue-600 dark:border-blue-600 hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600 dark:text-gray-400 mb-1">{stat.label}</p>
+                <p className="text-2xl font-bold text-slate-900 dark:text-white">{stat.value}</p>
+              </div>
+              <div className="bg-blue-50 dark:bg-gray-700 p-3 rounded-lg">
+                <stat.icon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              </div>
+            </div>
           </div>
-          <div className="bg-gradient-to-br from-blue-100 to-blue-50 dark:from-slate-800 dark:to-slate-700 p-6 rounded-lg border border-blue-600 shadow-lg">
-            <p className="text-slate-700 dark:text-slate-300 text-sm">Today's Gain/Loss</p>
-            <p className="text-3xl font-bold text-green-400 mt-2">+$1,245.32</p>
-          </div>
-          <div className="bg-gradient-to-br from-blue-100 to-blue-50 dark:from-slate-800 dark:to-slate-700 p-6 rounded-lg border border-blue-600 shadow-lg">
-            <p className="text-slate-700 dark:text-slate-300 text-sm">Total Return</p>
-            <p className="text-3xl font-bold text-blue-400 mt-2">+12.5%</p>
-          </div>
+        ))}
+      </div>
+
+      {/* Stock Table */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-blue-600 dark:border-blue-600 overflow-hidden transition-colors duration-300">
+        {/* Tabs */}
+        <div className="px-6 py-4 border-b border-slate-200 dark:border-gray-700 flex items-center space-x-4">
+          <button
+            onClick={() => setActiveTab('all')}
+            className={`pb-2 px-4 font-medium transition-colors border-b-2 ${
+              activeTab === 'all'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-slate-600 dark:text-gray-400 hover:text-blue-600'
+            }`}
+          >
+            All Stocks
+          </button>
+          <button
+            onClick={() => setActiveTab('favorites')}
+            className={`pb-2 px-4 font-medium transition-colors border-b-2 flex items-center space-x-2 ${
+              activeTab === 'favorites'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-slate-600 dark:text-gray-400 hover:text-blue-600'
+            }`}
+          >
+            <Star className="w-4 h-4" />
+            <span>Favorites</span>
+          </button>
         </div>
 
-        {/* Stock List */}
-        <div className="bg-blue-50 dark:bg-slate-800 rounded-lg border border-blue-600 shadow-lg overflow-hidden">
-          <div className="p-6 bg-gradient-to-r from-blue-100 to-blue-50 dark:from-slate-800 dark:to-slate-700 border-b border-blue-600">
-            <h3 className="text-2xl font-bold text-blue-400">Watchlist</h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-blue-600 bg-gray-200 dark:bg-slate-700">
-                  <th className="text-left p-4 text-slate-700 dark:text-slate-300 font-semibold">Symbol</th>
-                  <th className="text-left p-4 text-slate-700 dark:text-slate-300 font-semibold">Company</th>
-                  <th className="text-right p-4 text-slate-700 dark:text-slate-300 font-semibold">Price</th>
-                  <th className="text-right p-4 text-slate-700 dark:text-slate-300 font-semibold">24h Change</th>
+        {/* Stock Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-slate-50 dark:bg-gray-700 border-b border-slate-200 dark:border-gray-700">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 dark:text-gray-400 uppercase tracking-wider w-12"></th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 dark:text-gray-400 uppercase tracking-wider">Symbol</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 dark:text-gray-400 uppercase tracking-wider">Company</th>
+                <th className="px-6 py-3 text-right text-xs font-semibold text-slate-600 dark:text-gray-400 uppercase tracking-wider">Price</th>
+                <th className="px-6 py-3 text-right text-xs font-semibold text-slate-600 dark:text-gray-400 uppercase tracking-wider">Change</th>
+                <th className="px-6 py-3 text-right text-xs font-semibold text-slate-600 dark:text-gray-400 uppercase tracking-wider">Volume</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200 dark:divide-gray-700">
+              {filteredStocks.map((stock) => (
+                <tr key={stock.symbol} className="hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors">
+                  <td className="px-6 py-4">
+                    <button
+                      onClick={() => toggleFavorite(stock.symbol)}
+                      className={`transition-colors ${
+                        favorites.includes(stock.symbol)
+                          ? 'text-yellow-500'
+                          : 'text-slate-600 dark:text-gray-400'
+                      }`}
+                    >
+                      <Star
+                        className={`w-4 h-4 ${
+                          favorites.includes(stock.symbol) ? 'fill-current' : ''
+                        }`}
+                      />
+                    </button>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="font-bold text-slate-900 dark:text-white">{stock.symbol}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-slate-600 dark:text-gray-400">{stock.name}</span>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <span className="font-semibold text-slate-900 dark:text-white">${stock.price.toFixed(2)}</span>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex items-center justify-end space-x-1">
+                      {stock.change >= 0 ? (
+                        <>
+                          <TrendingUp className="w-4 h-4 text-blue-600" />
+                          <span className="font-semibold text-blue-600">
+                            +${Math.abs(stock.change).toFixed(2)} ({stock.changePercent}%)
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <TrendingDown className="w-4 h-4 text-rose-600" />
+                          <span className="font-semibold text-rose-600">
+                            -${Math.abs(stock.change).toFixed(2)} ({Math.abs(stock.changePercent)}%)
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <span className="text-slate-600 dark:text-gray-400">{stock.volume}</span>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {stocks.map((stock) => (
-                  <tr key={stock.symbol} className="border-b border-gray-300 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
-                    <td className="p-4 font-bold text-blue-400">{stock.symbol}</td>
-                    <td className="p-4 text-slate-700 dark:text-slate-300">{stock.name}</td>
-                    <td className="text-right p-4 font-semibold text-slate-900 dark:text-white">${stock.price.toFixed(2)}</td>
-                    <td className={`text-right p-4 font-semibold ${stock.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      {stock.change >= 0 ? '+' : ''}{stock.change.toFixed(2)}%
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

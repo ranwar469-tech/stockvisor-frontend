@@ -50,14 +50,14 @@ export default function News() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white p-8">
+    <div className="min-h-screen bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-8">
       <div className="max-w-5xl mx-auto">
         <h2 className="text-4xl font-bold mb-2 text-blue-400">Market News</h2>
-        <p className="text-slate-400 mb-8">Stay updated with the latest market movements</p>
+        <p className="text-slate-600 dark:text-slate-400 mb-8">Stay updated with the latest market movements</p>
 
         <div className="space-y-6">
           {newsArticles.map((article) => (
-            <div key={article.id} className="bg-slate-800 rounded-lg border border-blue-600 shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer">
+            <div key={article.id} className="bg-blue-50 dark:bg-slate-800 rounded-lg border border-blue-600 shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer">
               <div className="flex items-start gap-4">
                 <div className="text-4xl">{article.image}</div>
                 <div className="flex-1">
@@ -65,14 +65,14 @@ export default function News() {
                     <span className="px-3 py-1 bg-blue-600 rounded-full text-xs font-semibold text-white">
                       {article.category}
                     </span>
-                    <span className={`px-3 py-1 bg-slate-700 rounded-full text-xs font-semibold ${getImpactColor(article.impact)}`}>
+                    <span className={`px-3 py-1 bg-blue-100 dark:bg-slate-700 rounded-full text-xs font-semibold ${getImpactColor(article.impact)}`}>
                       {article.impact}
                     </span>
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-2 hover:text-blue-400 transition-colors">
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 hover:text-blue-400 transition-colors">
                     {article.headline}
                   </h3>
-                  <div className="flex items-center justify-between text-slate-400 text-sm">
+                  <div className="flex items-center justify-between text-slate-600 dark:text-slate-400 text-sm">
                     <span>{article.source}</span>
                     <span>{article.date}</span>
                   </div>

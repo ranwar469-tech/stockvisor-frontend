@@ -58,20 +58,20 @@ export default function Tips() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white p-8">
+    <div className="min-h-screen bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-8">
       <div className="max-w-6xl mx-auto">
         <h2 className="text-4xl font-bold mb-2 text-blue-400">Trading Tips & Learning</h2>
-        <p className="text-slate-400 mb-8">Master the essentials of stock trading and investing</p>
+        <p className="text-slate-600 dark:text-slate-400 mb-8">Master the essentials of stock trading and investing</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {tips.map((tip) => (
-            <div key={tip.id} className="bg-slate-800 rounded-lg border border-blue-600 shadow-lg p-6 hover:shadow-xl hover:border-blue-400 transition-all cursor-pointer">
+            <div key={tip.id} className="bg-blue-50 dark:bg-slate-800 rounded-lg border border-blue-600 shadow-lg p-6 hover:shadow-xl hover:border-blue-400 transition-all cursor-pointer">
               <div className="text-4xl mb-4">{tip.icon}</div>
-              <h3 className="text-xl font-bold text-white mb-2">{tip.title}</h3>
-              <p className="text-slate-300 text-sm mb-4 leading-relaxed">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{tip.title}</h3>
+              <p className="text-slate-700 dark:text-slate-300 text-sm mb-4 leading-relaxed">
                 {tip.description}
               </p>
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-700">
+              <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-300 dark:border-slate-700">
                 <span className={`px-3 py-1 rounded-full text-xs font-semibold text-white ${getDifficultyColor(tip.difficulty)}`}>
                   {tip.difficulty}
                 </span>

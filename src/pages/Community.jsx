@@ -13,21 +13,21 @@ export default function Community() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white p-8">
+    <div className="min-h-screen bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-8">
       <div className="max-w-7xl mx-auto">
         <h2 className="text-4xl font-bold mb-2 text-blue-400">Community</h2>
-        <p className="text-slate-400 mb-8">Connect with traders and share investment insights</p>
+        <p className="text-slate-600 dark:text-slate-400 mb-8">Connect with traders and share investment insights</p>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Discussions */}
           <div className="lg:col-span-2">
-            <div className="bg-slate-800 rounded-lg border border-blue-600 shadow-lg overflow-hidden">
-              <div className="p-6 bg-gradient-to-r from-slate-800 to-slate-700 border-b border-blue-600">
+            <div className="bg-blue-50 dark:bg-slate-800 rounded-lg border border-blue-600 shadow-lg overflow-hidden">
+              <div className="p-6 bg-gradient-to-r from-blue-100 to-blue-50 dark:from-slate-800 dark:to-slate-700 border-b border-blue-600">
                 <h3 className="text-2xl font-bold text-blue-400">Popular Discussions</h3>
               </div>
-              <div className="divide-y divide-slate-700">
+              <div className="divide-y divide-gray-300 dark:divide-slate-700">
                 {discussions.map((discussion) => (
-                  <div key={discussion.id} className="p-6 hover:bg-slate-700 transition-colors cursor-pointer">
+                  <div key={discussion.id} className="p-6 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors cursor-pointer">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
@@ -35,12 +35,12 @@ export default function Community() {
                             {discussion.category}
                           </span>
                         </div>
-                        <h4 className="text-lg font-bold text-white mb-1">{discussion.title}</h4>
-                        <p className="text-slate-400 text-sm">by {discussion.author}</p>
+                        <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{discussion.title}</h4>
+                        <p className="text-slate-600 dark:text-slate-400 text-sm">by {discussion.author}</p>
                       </div>
                       <div className="text-right ml-4">
                         <p className="text-blue-400 font-semibold">{discussion.replies} replies</p>
-                        <p className="text-slate-400 text-sm">{discussion.views} views</p>
+                        <p className="text-slate-600 dark:text-slate-400 text-sm">{discussion.views} views</p>
                       </div>
                     </div>
                   </div>
@@ -51,16 +51,16 @@ export default function Community() {
 
           {/* Top Contributors */}
           <div>
-            <div className="bg-slate-800 rounded-lg border border-blue-600 shadow-lg overflow-hidden">
-              <div className="p-6 bg-gradient-to-r from-slate-800 to-slate-700 border-b border-blue-600">
+            <div className="bg-blue-50 dark:bg-slate-800 rounded-lg border border-blue-600 shadow-lg overflow-hidden">
+              <div className="p-6 bg-gradient-to-r from-blue-100 to-blue-50 dark:from-slate-800 dark:to-slate-700 border-b border-blue-600">
                 <h3 className="text-xl font-bold text-blue-400">Top Contributors</h3>
               </div>
-              <div className="divide-y divide-slate-700">
+              <div className="divide-y divide-gray-300 dark:divide-slate-700">
                 {topUsers.map((user) => (
-                  <div key={user.id} className="p-4 hover:bg-slate-700 transition-colors">
-                    <p className="font-bold text-white">{user.name}</p>
+                  <div key={user.id} className="p-4 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
+                    <p className="font-bold text-slate-900 dark:text-white">{user.name}</p>
                     <p className="text-blue-400 text-sm">⚡ {user.points} points</p>
-                    <p className="text-slate-400 text-xs">{user.posts} posts</p>
+                    <p className="text-slate-600 dark:text-slate-400 text-xs">{user.posts} posts</p>
                   </div>
                 ))}
               </div>

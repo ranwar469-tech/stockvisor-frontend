@@ -1,10 +1,26 @@
 // src/components/Layout.jsx
-import { Link, Outlet } from "react-router-dom";
-import { User, Sun, Moon } from 'lucide-react';
+import { Link, Outlet, useNavigate } from "react-router-dom";
+import { useState, useRef, useEffect } from 'react';
+import { User, MoonIcon, Settings, LogOut, Brain } from 'lucide-react';
 import { useTheme } from "../hooks/useTheme";
+import AIInsightsSidebar from './AIInsightsSidebar';
 
 function Layout() {
   const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [aiSidebarOpen, setAiSidebarOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setUserMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
@@ -14,9 +30,36 @@ function Layout() {
             StockVisor
           </Link>
           <div className="flex items-center gap-6 ml-auto">
-            <Link to="/portfolio" className="text-4xl hover:border-blue-400 border-2 border-transparent rounded-full" >
-              <User size={28} />
-            </Link>
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setUserMenuOpen(prev => !prev)}
+                className="hover:border-blue-400 border-2 border-transparent rounded-full p-1 transition-colors text-slate-900 dark:text-white"
+                aria-haspopup="true"
+                aria-expanded={userMenuOpen}
+              >
+                <User size={28} />
+              </button>
+
+              {userMenuOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl shadow-lg z-50 overflow-hidden">
+                  <button
+                    onClick={() => setUserMenuOpen(false)}
+                    className="flex items-center gap-3 w-full px-4 py-3 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <Settings className="w-4 h-4 text-blue-600" />
+                    Account Settings
+                  </button>
+                  <div className="border-t border-slate-200 dark:border-gray-700" />
+                  <button
+                    onClick={() => { setUserMenuOpen(false); /* add logout logic here */ }}
+                    className="flex items-center gap-3 w-full px-4 py-3 text-sm text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Log Out
+                  </button>
+                </div>
+              )}
+            </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
@@ -26,11 +69,8 @@ function Layout() {
                 role="switch"
                 aria-checked={theme === 'dark'}
               />
-              <div className="w-10 h-6 bg-slate-300 dark:bg-slate-600 rounded-full peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-500 transition-colors peer-checked:bg-green-500 flex items-center justify-between px-1">
-                <Sun className="w-3 h-3 text-yellow-400 opacity-100 peer-checked:opacity-0 transition-opacity" />
-                <Moon className="w-3 h-3 text-gray-800 dark:text-gray-200 opacity-0 peer-checked:opacity-100 transition-opacity" />
-              </div>
-              <div className="absolute left-0.5 top-1 w-4 h-4 bg-white dark:bg-gray-200 rounded-full shadow transform peer-checked:translate-x-4 transition-transform"></div>
+              <div className="w-12 h-7 bg-slate-300 dark:bg-slate-600 rounded-full peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-500 transition-colors peer-checked:bg-green-500"></div>
+              <MoonIcon className="text-yellow-400 absolute left-0.5 top-0.5 w-6 h-6 bg-white dark:bg-gray-200 rounded-full shadow transform peer-checked:translate-x-5 transition-transform"/>
             </label>
           </div>
         </div>
@@ -74,6 +114,18 @@ function Layout() {
       <main className="flex-grow p-6">
         <Outlet />
       </main>
+
+      {/* AI Insights FAB */}
+      <button
+        onClick={() => setAiSidebarOpen(true)}
+        className="fixed bottom-6 right-6 z-40 flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-full shadow-lg transition-colors"
+        aria-label="Open AI Insights"
+      >
+        <Brain className="w-4 h-4" />
+        <span className="text-sm font-semibold">AI Insights</span>
+      </button>
+
+      <AIInsightsSidebar open={aiSidebarOpen} onClose={() => setAiSidebarOpen(false)} />
 
       <footer className="bg-gray-100 dark:bg-slate-800 border-t-2 border-blue-600 shadow-inner py-4 text-center">
         <p className="text-sm text-slate-600 dark:text-gray-400">

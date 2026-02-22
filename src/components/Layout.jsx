@@ -1,6 +1,6 @@
 // src/components/Layout.jsx
 import { Link, Outlet } from "react-router-dom";
-import { MdAccountCircle } from "react-icons/md";
+import { User, Sun, Moon } from 'lucide-react';
 import { useTheme } from "../hooks/useTheme";
 
 function Layout() {
@@ -14,18 +14,24 @@ function Layout() {
             StockVisor
           </Link>
           <div className="flex items-center gap-6 ml-auto">
-            <button
-              onClick={toggleTheme}
-              className="px-3 py-1 border-blue-400 hover:bg-blue-400 hover:text-white dark:hover:bg-blue-500 transition"
-            >
-              {theme === "dark" ? "🌙 Dark" : "☀️ Light"}
-            </button>
-            <Link
-              to="/portfolio"
-              className="text-4xl hover:border-blue-400 border-2 border-transparent rounded-full"
-            >
-              <MdAccountCircle />
+            <Link to="/portfolio" className="text-4xl hover:border-blue-400 border-2 border-transparent rounded-full" >
+              <User size={28} />
             </Link>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={theme === 'dark'}
+                onChange={toggleTheme}
+                className="sr-only peer"
+                role="switch"
+                aria-checked={theme === 'dark'}
+              />
+              <div className="w-10 h-6 bg-slate-300 dark:bg-slate-600 rounded-full peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-500 transition-colors peer-checked:bg-green-500 flex items-center justify-between px-1">
+                <Sun className="w-3 h-3 text-yellow-400 opacity-100 peer-checked:opacity-0 transition-opacity" />
+                <Moon className="w-3 h-3 text-gray-800 dark:text-gray-200 opacity-0 peer-checked:opacity-100 transition-opacity" />
+              </div>
+              <div className="absolute left-0.5 top-1 w-4 h-4 bg-white dark:bg-gray-200 rounded-full shadow transform peer-checked:translate-x-4 transition-transform"></div>
+            </label>
           </div>
         </div>
       </header>
@@ -35,11 +41,6 @@ function Layout() {
           <li>
             <Link to="/" className="hover:text-blue-400 text-lg transition-colors font-medium text-slate-900 dark:text-white">
               Home
-            </Link>
-          </li>
-          <li>
-            <Link to="/about" className="hover:text-blue-400 text-lg transition-colors font-medium text-slate-900 dark:text-white">
-              About
             </Link>
           </li>
           <li>
@@ -60,6 +61,11 @@ function Layout() {
           <li>
             <Link to="/tips" className="hover:text-blue-400 text-lg transition-colors font-medium text-slate-900 dark:text-white">
               Tips
+            </Link>
+          </li>
+          <li>
+            <Link to="/about" className="hover:text-blue-400 text-lg transition-colors font-medium text-slate-900 dark:text-white">
+              About
             </Link>
           </li>
         </ul>

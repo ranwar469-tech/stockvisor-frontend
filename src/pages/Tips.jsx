@@ -44,38 +44,51 @@ export default function Tips() {
     },
   ];
 
-  const getDifficultyColor = (difficulty) => {
+  const getDifficultyClasses = (difficulty) => {
     switch (difficulty) {
       case 'Beginner':
-        return 'bg-green-600';
+        return 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 border border-blue-200 dark:border-blue-800';
       case 'Intermediate':
-        return 'bg-yellow-600';
+        return 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 border border-yellow-200 dark:border-yellow-800';
       case 'Advanced':
-        return 'bg-red-600';
+        return 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 border border-rose-200 dark:border-rose-800';
       default:
-        return 'bg-blue-600';
+        return 'bg-slate-50 dark:bg-gray-700 text-slate-600 dark:text-gray-400';
     }
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-8">
-      <div className="max-w-6xl mx-auto">
-        <h2 className="text-4xl font-bold mb-2 text-blue-400">Trading Tips & Learning</h2>
-        <p className="text-slate-600 dark:text-slate-400 mb-8">Master the essentials of stock trading and investing</p>
+    <div className="space-y-8">
+      {/* Page Header */}
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Trading Tips & Learning</h2>
+        <p className="text-slate-600 dark:text-gray-400">Master the essentials of stock trading and investing</p>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {tips.map((tip) => (
-            <div key={tip.id} className="bg-blue-50 dark:bg-slate-800 rounded-lg border border-blue-600 shadow-lg p-6 hover:shadow-xl hover:border-blue-400 transition-all cursor-pointer">
-              <div className="text-4xl mb-4">{tip.icon}</div>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{tip.title}</h3>
-              <p className="text-slate-700 dark:text-slate-300 text-sm mb-4 leading-relaxed">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-blue-600 overflow-hidden transition-colors duration-300">
+        <div className="px-6 py-4 border-b border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-700">
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">All Tips</h3>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 divide-y divide-slate-200 dark:divide-gray-700 md:divide-y-0">
+          {tips.map((tip, index) => (
+            <div
+              key={tip.id}
+              className={`p-6 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors cursor-pointer ${
+                index % 3 !== 2 ? 'md:border-r border-slate-200 dark:border-gray-700' : ''
+              } ${
+                index < 3 ? 'lg:border-b border-slate-200 dark:border-gray-700' : ''
+              }`}
+            >
+              <div className="text-3xl mb-4">{tip.icon}</div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">{tip.title}</h3>
+              <p className="text-slate-600 dark:text-gray-400 text-sm leading-relaxed mb-4">
                 {tip.description}
               </p>
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-300 dark:border-slate-700">
-                <span className={`px-3 py-1 rounded-full text-xs font-semibold text-white ${getDifficultyColor(tip.difficulty)}`}>
+              <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-gray-700">
+                <span className={`px-2 py-1 rounded text-xs font-semibold ${getDifficultyClasses(tip.difficulty)}`}>
                   {tip.difficulty}
                 </span>
-                <span className="text-blue-400 text-sm font-semibold hover:text-blue-300">
+                <span className="text-blue-600 text-sm font-semibold hover:text-blue-500">
                   Learn More →
                 </span>
               </div>

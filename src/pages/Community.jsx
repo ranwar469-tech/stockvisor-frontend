@@ -1,3 +1,5 @@
+import { MessageSquare, Eye, Users, Trophy } from 'lucide-react';
+
 export default function Community() {
   const discussions = [
     { id: 1, author: 'Alex Chen', title: 'Best dividend stocks for 2026', replies: 24, views: 1205, category: 'Dividends' },
@@ -13,57 +15,79 @@ export default function Community() {
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-8">
-      <div className="max-w-7xl mx-auto">
-        <h2 className="text-4xl font-bold mb-2 text-blue-400">Community</h2>
-        <p className="text-slate-600 dark:text-slate-400 mb-8">Connect with traders and share investment insights</p>
+    <div className="space-y-8">
+      {/* Page Header */}
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Community</h2>
+        <p className="text-slate-600 dark:text-gray-400">Connect with traders and share investment insights</p>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Discussions */}
-          <div className="lg:col-span-2">
-            <div className="bg-blue-50 dark:bg-slate-800 rounded-lg border border-blue-600 shadow-lg overflow-hidden">
-              <div className="p-6 bg-gradient-to-r from-blue-100 to-blue-50 dark:from-slate-800 dark:to-slate-700 border-b border-blue-600">
-                <h3 className="text-2xl font-bold text-blue-400">Popular Discussions</h3>
-              </div>
-              <div className="divide-y divide-gray-300 dark:divide-slate-700">
-                {discussions.map((discussion) => (
-                  <div key={discussion.id} className="p-6 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors cursor-pointer">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="px-2 py-1 bg-blue-600 rounded text-xs font-semibold text-white">
-                            {discussion.category}
-                          </span>
-                        </div>
-                        <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{discussion.title}</h4>
-                        <p className="text-slate-600 dark:text-slate-400 text-sm">by {discussion.author}</p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Discussions */}
+        <div className="lg:col-span-2">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-blue-600 overflow-hidden transition-colors duration-300">
+            <div className="px-6 py-4 border-b border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-700">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Popular Discussions</h3>
+            </div>
+            <div className="divide-y divide-slate-200 dark:divide-gray-700">
+              {discussions.map((discussion) => (
+                <div key={discussion.id} className="px-6 py-5 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors cursor-pointer">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="px-2 py-1 bg-blue-600 rounded text-xs font-semibold text-white">
+                          {discussion.category}
+                        </span>
                       </div>
-                      <div className="text-right ml-4">
-                        <p className="text-blue-400 font-semibold">{discussion.replies} replies</p>
-                        <p className="text-slate-600 dark:text-slate-400 text-sm">{discussion.views} views</p>
+                      <h4 className="text-base font-bold text-slate-900 dark:text-white mb-1">{discussion.title}</h4>
+                      <p className="text-slate-600 dark:text-gray-400 text-sm">by {discussion.author}</p>
+                    </div>
+                    <div className="text-right ml-4 space-y-1">
+                      <div className="flex items-center justify-end gap-1 text-blue-600">
+                        <MessageSquare className="w-4 h-4" />
+                        <span className="font-semibold text-sm">{discussion.replies}</span>
+                      </div>
+                      <div className="flex items-center justify-end gap-1 text-slate-600 dark:text-gray-400">
+                        <Eye className="w-4 h-4" />
+                        <span className="text-sm">{discussion.views}</span>
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </div>
+        </div>
 
-          {/* Top Contributors */}
-          <div>
-            <div className="bg-blue-50 dark:bg-slate-800 rounded-lg border border-blue-600 shadow-lg overflow-hidden">
-              <div className="p-6 bg-gradient-to-r from-blue-100 to-blue-50 dark:from-slate-800 dark:to-slate-700 border-b border-blue-600">
-                <h3 className="text-xl font-bold text-blue-400">Top Contributors</h3>
-              </div>
-              <div className="divide-y divide-gray-300 dark:divide-slate-700">
-                {topUsers.map((user) => (
-                  <div key={user.id} className="p-4 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
-                    <p className="font-bold text-slate-900 dark:text-white">{user.name}</p>
-                    <p className="text-blue-400 text-sm">⚡ {user.points} points</p>
-                    <p className="text-slate-600 dark:text-slate-400 text-xs">{user.posts} posts</p>
+        {/* Top Contributors */}
+        <div>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-blue-600 overflow-hidden transition-colors duration-300">
+            <div className="px-6 py-4 border-b border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-700">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Top Contributors</h3>
+            </div>
+            <div className="divide-y divide-slate-200 dark:divide-gray-700">
+              {topUsers.map((user, index) => (
+                <div key={user.id} className="px-6 py-4 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                      {index + 1}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-slate-900 dark:text-white">{user.name}</p>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className="flex items-center gap-1 text-blue-600 text-xs font-semibold">
+                          <Trophy className="w-3 h-3" />
+                          {user.points} pts
+                        </span>
+                        <span className="flex items-center gap-1 text-slate-600 dark:text-gray-400 text-xs">
+                          <Users className="w-3 h-3" />
+                          {user.posts} posts
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>

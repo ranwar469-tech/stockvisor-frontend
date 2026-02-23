@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { TrendingUp, TrendingDown, DollarSign, Activity, BarChart3, Star } from 'lucide-react';
+import TradingViewWidget from '../components/StockWdgets';
+import StockHeatmap from '../components/StockHeatmap';
 
 export default function Home() {
   const [favorites, setFavorites] = useState([]);
@@ -32,33 +34,47 @@ export default function Home() {
 
   return (
     <div>
-      {/* Page Header */}
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Market Dashboard</h2>
-        <p className="text-slate-600 dark:text-slate-400">Real-time stock prices and market insights at your fingertips</p>
-      </div>
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Market Dashboard</h2>
+          <span className="text-slate-600 dark:text-slate-400 mb-6 inline-block border-[#2ebd85] border-b-2">Real-time stock prices and market insights at your fingertips</span>
 
-      {/* Market Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {marketStats.map((stat) => (
-          <div
-            key={stat.label}
-            className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-[#2ebd85] dark:border-[#2ebd85] hover:shadow-md transition-shadow"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600 dark:text-gray-400 mb-1">{stat.label}</p>
-                <p className="text-2xl font-bold text-slate-900 dark:text-white">{stat.value}</p>
-              </div>
-              <div className="bg-[#edfaf4] dark:bg-gray-700 p-3 rounded-lg">
-                <stat.icon className="w-6 h-6 text-[#2ebd85] dark:text-[#4cc99b]" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Market Stats – stacked vertically, 1 col */}
+            <div className="flex flex-col gap-4">
+              {marketStats.map((stat) => (
+                <div
+                  key={stat.label}
+                  className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-[#2ebd85] dark:border-[#2ebd85] hover:shadow-md transition-shadow"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-slate-600 dark:text-gray-400 mb-1">{stat.label}</p>
+                      <p className="text-xl font-bold text-slate-900 dark:text-white">{stat.value}</p>
+                    </div>
+                    <div className="bg-[#edfaf4] dark:bg-gray-700 p-3 rounded-lg">
+                      <stat.icon className="w-5 h-5 text-[#2ebd85] dark:text-[#4cc99b]" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* TradingView Widget – spans 1 cols */}
+            <div className="md:col-span-1 p-0.5">
+              <div className="bg-slate-50 dark:bg-gray-900 p-1 rounded-lg h-full min-h-80">
+                <TradingViewWidget />
               </div>
             </div>
-          </div>
-        ))}
-      </div>
 
-      {/* Stock Table */}
+            {/* Heatmap Widget – spans 1 col */}
+            <div className="md:col-span-1 p-0.5">
+              <div className="relative overflow-hidden rounded-lg h-full min-h-80">
+                <StockHeatmap />
+              </div>
+            </div>
+
+          </div>
+        </div>
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-[#2ebd85] dark:border-[#2ebd85] overflow-hidden transition-colors duration-300">
         {/* Tabs */}
         <div className="px-6 py-4 border-b border-slate-200 dark:border-gray-700 flex items-center space-x-4">

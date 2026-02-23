@@ -1,9 +1,9 @@
 export default function About() {
+
   return (
     <div className="min-h-screen bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-8">
       <div className="max-w-4xl mx-auto">
         <h2 className="text-4xl font-bold mb-6 text-[#4cc99b]">About StockVisor</h2>
-        
         <div className="space-y-6">
           <div className="bg-[#edfaf4] dark:bg-slate-800 p-6 rounded-lg border border-[#2ebd85] shadow-lg">
             <h3 className="text-2xl font-bold text-[#35cc8e] dark:text-[#80d6b3] mb-3">Our Mission</h3>

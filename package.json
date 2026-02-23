@@ -11,9 +11,6 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
-    "ag-charts-community": "^13.1.0",
-    "ag-charts-enterprise": "^13.1.0",
-    "ag-charts-react": "^13.1.0",
     "axios": "^1.13.5",
     "chart.js": "^4.5.1",
     "dotenv": "^17.3.1",
@@ -21,6 +18,7 @@
     "react": "^19.2.0",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.2.0",
+    "react-google-charts": "^5.2.1",
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.13.0",
     "scichart": "^5.0.178"

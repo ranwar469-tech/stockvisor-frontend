@@ -38,8 +38,8 @@ export default function Home() {
           <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Market Dashboard</h2>
           <span className="text-slate-600 dark:text-slate-400 mb-6 inline-block border-[#2ebd85] border-b-2">Real-time stock prices and market insights at your fingertips</span>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Market Stats – stacked vertically, 1 col */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch" style={{ gridAutoRows: '1fr' }}>
+            {/* Market Stats – stacked vertically */}
             <div className="flex flex-col gap-4">
               {marketStats.map((stat) => (
                 <div
@@ -66,9 +66,9 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Heatmap Widget – spans 1 col */}
+            {/* Heatmap Widget – spans 1 col, same height as siblings */}
             <div className="md:col-span-1 p-0.5">
-              <div className="relative overflow-hidden rounded-lg h-full min-h-80">
+              <div className="relative overflow-hidden rounded-lg h-full min-h-80 max-h-[28rem]">
                 <StockHeatmap />
               </div>
             </div>

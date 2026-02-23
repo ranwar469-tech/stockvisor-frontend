@@ -1,4 +1,3 @@
-// src/components/Layout.jsx
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from 'react';
 import { User, MoonIcon, Settings, LogOut, LogIn, Brain, Info } from 'lucide-react';

@@ -38,7 +38,7 @@ const aiAlerts = [
 
 function SentimentBar({ score, sentiment }) {
   const color =
-    sentiment === 'Bullish' ? 'bg-blue-500' :
+    sentiment === 'Bullish' ? 'bg-[#35cc8e]' :
     sentiment === 'Bearish' ? 'bg-rose-500' :
     'bg-yellow-400';
   return (
@@ -51,7 +51,7 @@ function SentimentBar({ score, sentiment }) {
 function ChangeChip({ change }) {
   const positive = change >= 0;
   const Icon = positive ? TrendingUp : TrendingDown;
-  const colorClass = positive ? 'text-blue-600' : 'text-rose-500';
+  const colorClass = positive ? 'text-[#2ebd85]' : 'text-rose-500';
   return (
     <span className={`flex items-center gap-0.5 text-xs font-semibold ${colorClass}`}>
       <Icon className="w-3 h-3" />
@@ -80,7 +80,7 @@ export default function AIInsightsSidebar({ open, onClose }) {
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 flex-shrink-0">
           <div className="flex items-center gap-2">
-            <Brain className="w-5 h-5 text-blue-600" />
+            <Brain className="w-5 h-5 text-[#2ebd85]" />
             <h2 className="text-base font-bold text-slate-900 dark:text-white">AI Insights</h2>
           </div>
           <button
@@ -165,7 +165,7 @@ export default function AIInsightsSidebar({ open, onClose }) {
             <div className="space-y-2">
               {sentiments.map((s) => {
                 const labelColor =
-                  s.sentiment === 'Bullish' ? 'text-blue-600' :
+                  s.sentiment === 'Bullish' ? 'text-[#2ebd85]' :
                   s.sentiment === 'Bearish' ? 'text-rose-500' :
                   'text-yellow-500';
                 return (
@@ -189,7 +189,7 @@ export default function AIInsightsSidebar({ open, onClose }) {
             <div className="space-y-2">
               {aiAlerts.map((alert, i) => {
                 const styles = {
-                  positive: 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300',
+                  positive: 'border-[#aae4cc] dark:border-[#1b7350] bg-[#edfaf4] dark:bg-[#114832]/20 text-[#26a070] dark:text-[#80d6b3]',
                   warning:  'border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300',
                   negative: 'border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-300',
                 };

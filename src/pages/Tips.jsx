@@ -47,7 +47,7 @@ export default function Tips() {
   const getDifficultyClasses = (difficulty) => {
     switch (difficulty) {
       case 'Beginner':
-        return 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 border border-blue-200 dark:border-blue-800';
+        return 'bg-[#edfaf4] dark:bg-[#114832]/20 text-[#2ebd85] border border-[#aae4cc] dark:border-[#1b7350]';
       case 'Intermediate':
         return 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 border border-yellow-200 dark:border-yellow-800';
       case 'Advanced':
@@ -65,7 +65,7 @@ export default function Tips() {
         <p className="text-slate-600 dark:text-gray-400">Master the essentials of stock trading and investing</p>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-blue-600 overflow-hidden transition-colors duration-300">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-[#2ebd85] overflow-hidden transition-colors duration-300">
         <div className="px-6 py-4 border-b border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-700">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white">All Tips</h3>
         </div>
@@ -88,7 +88,7 @@ export default function Tips() {
                 <span className={`px-2 py-1 rounded text-xs font-semibold ${getDifficultyClasses(tip.difficulty)}`}>
                   {tip.difficulty}
                 </span>
-                <span className="text-blue-600 text-sm font-semibold hover:text-blue-500">
+                <span className="text-[#2ebd85] text-sm font-semibold hover:text-[#35cc8e]">
                   Learn More →
                 </span>
               </div>

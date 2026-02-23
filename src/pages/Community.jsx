@@ -25,7 +25,7 @@ export default function Community() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Discussions */}
         <div className="lg:col-span-2">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-blue-600 overflow-hidden transition-colors duration-300">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-[#2ebd85] overflow-hidden transition-colors duration-300">
             <div className="px-6 py-4 border-b border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-700">
               <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Popular Discussions</h3>
             </div>
@@ -35,7 +35,7 @@ export default function Community() {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="px-2 py-1 bg-blue-600 rounded text-xs font-semibold text-white">
+                        <span className="px-2 py-1 bg-[#2ebd85] rounded text-xs font-semibold text-white">
                           {discussion.category}
                         </span>
                       </div>
@@ -43,7 +43,7 @@ export default function Community() {
                       <p className="text-slate-600 dark:text-gray-400 text-sm">by {discussion.author}</p>
                     </div>
                     <div className="text-right ml-4 space-y-1">
-                      <div className="flex items-center justify-end gap-1 text-blue-600">
+                      <div className="flex items-center justify-end gap-1 text-[#2ebd85]">
                         <MessageSquare className="w-4 h-4" />
                         <span className="font-semibold text-sm">{discussion.replies}</span>
                       </div>
@@ -61,7 +61,7 @@ export default function Community() {
 
         {/* Top Contributors */}
         <div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-blue-600 overflow-hidden transition-colors duration-300">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-[#2ebd85] overflow-hidden transition-colors duration-300">
             <div className="px-6 py-4 border-b border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-700">
               <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Top Contributors</h3>
             </div>
@@ -69,13 +69,13 @@ export default function Community() {
               {topUsers.map((user, index) => (
                 <div key={user.id} className="px-6 py-4 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-[#2ebd85] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                       {index + 1}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-slate-900 dark:text-white">{user.name}</p>
                       <div className="flex items-center gap-3 mt-1">
-                        <span className="flex items-center gap-1 text-blue-600 text-xs font-semibold">
+                        <span className="flex items-center gap-1 text-[#2ebd85] text-xs font-semibold">
                           <Trophy className="w-3 h-3" />
                           {user.points} pts
                         </span>

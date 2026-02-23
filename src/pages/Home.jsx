@@ -43,15 +43,15 @@ export default function Home() {
         {marketStats.map((stat) => (
           <div
             key={stat.label}
-            className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-blue-600 dark:border-blue-600 hover:shadow-md transition-shadow"
+            className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-[#2ebd85] dark:border-[#2ebd85] hover:shadow-md transition-shadow"
           >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-600 dark:text-gray-400 mb-1">{stat.label}</p>
                 <p className="text-2xl font-bold text-slate-900 dark:text-white">{stat.value}</p>
               </div>
-              <div className="bg-blue-50 dark:bg-gray-700 p-3 rounded-lg">
-                <stat.icon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              <div className="bg-[#edfaf4] dark:bg-gray-700 p-3 rounded-lg">
+                <stat.icon className="w-6 h-6 text-[#2ebd85] dark:text-[#4cc99b]" />
               </div>
             </div>
           </div>
@@ -59,15 +59,15 @@ export default function Home() {
       </div>
 
       {/* Stock Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-blue-600 dark:border-blue-600 overflow-hidden transition-colors duration-300">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-[#2ebd85] dark:border-[#2ebd85] overflow-hidden transition-colors duration-300">
         {/* Tabs */}
         <div className="px-6 py-4 border-b border-slate-200 dark:border-gray-700 flex items-center space-x-4">
           <button
             onClick={() => setActiveTab('all')}
             className={`pb-2 px-4 font-medium transition-colors border-b-2 ${
               activeTab === 'all'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-slate-600 dark:text-gray-400 hover:text-blue-600'
+                ? 'border-[#2ebd85] text-[#2ebd85]'
+                : 'border-transparent text-slate-600 dark:text-gray-400 hover:text-[#2ebd85]'
             }`}
           >
             All Stocks
@@ -76,8 +76,8 @@ export default function Home() {
             onClick={() => setActiveTab('favorites')}
             className={`pb-2 px-4 font-medium transition-colors border-b-2 flex items-center space-x-2 ${
               activeTab === 'favorites'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-slate-600 dark:text-gray-400 hover:text-blue-600'
+                ? 'border-[#2ebd85] text-[#2ebd85]'
+                : 'border-transparent text-slate-600 dark:text-gray-400 hover:text-[#2ebd85]'
             }`}
           >
             <Star className="w-4 h-4" />
@@ -91,11 +91,11 @@ export default function Home() {
             <thead className="bg-slate-50 dark:bg-gray-700 border-b border-slate-200 dark:border-gray-700">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 dark:text-gray-400 uppercase tracking-wider w-12"></th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 dark:text-gray-400 uppercase tracking-wider">Symbol</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 dark:text-gray-400 uppercase tracking-wider">Company</th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-slate-600 dark:text-gray-400 uppercase tracking-wider">Price</th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-slate-600 dark:text-gray-400 uppercase tracking-wider">Change</th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-slate-600 dark:text-gray-400 uppercase tracking-wider">Volume</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-black dark:text-yellow-300 uppercase tracking-wider">Symbol</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-black dark:text-yellow-300 uppercase tracking-wider">Company</th>
+                <th className="px-6 py-3 text-right text-xs font-semibold text-black dark:text-yellow-300 uppercase tracking-wider">Price</th>
+                <th className="px-6 py-3 text-right text-xs font-semibold text-black dark:text-yellow-300 uppercase tracking-wider">Change</th>
+                <th className="px-6 py-3 text-right text-xs font-semibold text-black dark:text-yellow-300 uppercase tracking-wider">Volume</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-gray-700">
@@ -130,8 +130,8 @@ export default function Home() {
                     <div className="flex items-center justify-end space-x-1">
                       {stock.change >= 0 ? (
                         <>
-                          <TrendingUp className="w-4 h-4 text-blue-600" />
-                          <span className="font-semibold text-blue-600">
+                          <TrendingUp className="w-4 h-4 text-[#2ebd85]" />
+                          <span className="font-semibold text-[#2ebd85]">
                             +${Math.abs(stock.change).toFixed(2)} ({stock.changePercent}%)
                           </span>
                         </>
@@ -146,7 +146,7 @@ export default function Home() {
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <span className="text-slate-600 dark:text-gray-400">{stock.volume}</span>
+                    <span className="text-black dark:text-white">{stock.volume}</span>
                   </td>
                 </tr>
               ))}

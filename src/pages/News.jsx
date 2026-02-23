@@ -45,7 +45,7 @@ export default function News() {
       case 'Positive':
         return {
           icon: <TrendingUp className="w-3 h-3" />,
-          classes: 'text-blue-600 bg-blue-50 dark:bg-blue-900/30',
+          classes: 'text-[#2ebd85] bg-[#edfaf4] dark:bg-[#114832]/30',
         };
       case 'Negative':
         return {
@@ -68,7 +68,7 @@ export default function News() {
         <p className="text-slate-600 dark:text-gray-400">Stay updated with the latest market movements</p>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-blue-600 overflow-hidden transition-colors duration-300">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-[#2ebd85] overflow-hidden transition-colors duration-300">
         <div className="px-6 py-4 border-b border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-700">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Latest Articles</h3>
         </div>
@@ -81,7 +81,7 @@ export default function News() {
                   <div className="text-3xl flex-shrink-0">{article.image}</div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="px-2 py-1 bg-blue-600 rounded text-xs font-semibold text-white">
+                      <span className="px-2 py-1 bg-[#2ebd85] rounded text-xs font-semibold text-white">
                         {article.category}
                       </span>
                       <span className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold ${badge.classes}`}>
@@ -89,7 +89,7 @@ export default function News() {
                         {article.impact}
                       </span>
                     </div>
-                    <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2 hover:text-blue-600 transition-colors">
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2 hover:text-[#2ebd85] transition-colors">
                       {article.headline}
                     </h3>
                     <div className="flex items-center justify-between">

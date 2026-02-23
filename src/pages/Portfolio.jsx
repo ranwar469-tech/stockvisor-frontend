@@ -106,22 +106,22 @@ export default function Portfolio() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-blue-600 hover:shadow-md transition-shadow">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-[#2ebd85] hover:shadow-md transition-shadow">
           <p className="text-sm text-slate-600 dark:text-gray-400 mb-1">Total Invested</p>
           <p className="text-2xl font-bold text-slate-900 dark:text-white">${totalMetrics.totalInvested.toFixed(2)}</p>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-blue-600 hover:shadow-md transition-shadow">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-[#2ebd85] hover:shadow-md transition-shadow">
           <p className="text-sm text-slate-600 dark:text-gray-400 mb-1">Current Value</p>
           <p className="text-2xl font-bold text-slate-900 dark:text-white">${totalMetrics.currentValue.toFixed(2)}</p>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-blue-600 hover:shadow-md transition-shadow">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-[#2ebd85] hover:shadow-md transition-shadow">
           <p className="text-sm text-slate-600 dark:text-gray-400 mb-1">Total Profit/Loss</p>
           <div className="flex items-center space-x-2">
             {portfolioProfit >= 0 ? (
               <>
-                <TrendingUp className="w-5 h-5 text-blue-600" />
-                <p className="text-2xl font-bold text-blue-600">+${portfolioProfit.toFixed(2)}</p>
-                <p className="text-sm font-semibold text-blue-600">({portfolioProfitPercent.toFixed(2)}%)</p>
+                <TrendingUp className="w-5 h-5 text-[#2ebd85]" />
+                <p className="text-2xl font-bold text-[#2ebd85]">+${portfolioProfit.toFixed(2)}</p>
+                <p className="text-sm font-semibold text-[#2ebd85]">({portfolioProfitPercent.toFixed(2)}%)</p>
               </>
             ) : (
               <>
@@ -135,12 +135,12 @@ export default function Portfolio() {
       </div>
 
       {/* Holdings Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-blue-600 overflow-hidden transition-colors duration-300">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-[#2ebd85] overflow-hidden transition-colors duration-300">
         <div className="px-6 py-4 border-b border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-700 flex items-center justify-between">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Holdings</h3>
-          <button
+            <button
             onClick={() => setShowAddModal(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+            className="bg-[#2ebd85] hover:bg-[#26a070] text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
           >
             <Plus className="w-4 h-4" />
             <span>Add Stock</span>
@@ -151,15 +151,15 @@ export default function Portfolio() {
           <table className="w-full">
             <thead className="bg-slate-50 dark:bg-gray-700 border-b border-slate-200 dark:border-gray-700">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 dark:text-gray-400 uppercase tracking-wider">Symbol</th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-slate-600 dark:text-gray-400 uppercase tracking-wider">Quantity</th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-slate-600 dark:text-gray-400 uppercase tracking-wider">Avg Price</th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-slate-600 dark:text-gray-400 uppercase tracking-wider">Current</th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-slate-600 dark:text-gray-400 uppercase tracking-wider">Total Invested</th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-slate-600 dark:text-gray-400 uppercase tracking-wider">Current Value</th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-slate-600 dark:text-gray-400 uppercase tracking-wider">Total Return</th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-slate-600 dark:text-gray-400 uppercase tracking-wider">Daily</th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-slate-600 dark:text-gray-400 uppercase tracking-wider">Action</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-black dark:text-yellow-300  uppercase tracking-wider">Symbol</th>
+                <th className="px-6 py-3 text-right text-xs font-semibold text-black dark:text-yellow-300 uppercase tracking-wider">Quantity</th>
+                <th className="px-6 py-3 text-right text-xs font-semibold text-black dark:text-yellow-300 uppercase tracking-wider">Avg Price</th>
+                <th className="px-6 py-3 text-right text-xs font-semibold text-black dark:text-yellow-300 uppercase tracking-wider">Current</th>
+                <th className="px-6 py-3 text-right text-xs font-semibold text-black dark:text-yellow-300 uppercase tracking-wider">Total Invested</th>
+                <th className="px-6 py-3 text-right text-xs font-semibold text-black dark:text-yellow-300 uppercase tracking-wider">Current Value</th>
+                <th className="px-6 py-3 text-right text-xs font-semibold text-black dark:text-yellow-300 uppercase tracking-wider">Total Return</th>
+                <th className="px-6 py-3 text-right text-xs font-semibold text-black dark:text-yellow-300 uppercase tracking-wider">Daily</th>
+                <th className="px-6 py-3 text-right text-xs font-semibold text-black dark:text-yellow-300 uppercase tracking-wider">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-gray-700">
@@ -193,8 +193,8 @@ export default function Portfolio() {
                       <div className="flex items-center justify-end space-x-1">
                         {totalProfitNum >= 0 ? (
                           <>
-                            <TrendingUp className="w-4 h-4 text-blue-600" />
-                            <span className="font-semibold text-blue-600">
+                            <TrendingUp className="w-4 h-4 text-[#2ebd85]" />
+                            <span className="font-semibold text-[#2ebd85]">
                               +${metrics.totalProfit} ({metrics.totalProfitPercent}%)
                             </span>
                           </>
@@ -212,8 +212,8 @@ export default function Portfolio() {
                       <div className="flex items-center justify-end space-x-1">
                         {dailyProfitNum >= 0 ? (
                           <>
-                            <TrendingUp className="w-4 h-4 text-blue-600" />
-                            <span className="text-sm font-semibold text-blue-600">+${metrics.dailyProfit}</span>
+                            <TrendingUp className="w-4 h-4 text-[#2ebd85]" />
+                            <span className="text-sm font-semibold text-[#2ebd85]">+${metrics.dailyProfit}</span>
                           </>
                         ) : (
                           <>
@@ -261,7 +261,7 @@ export default function Portfolio() {
                   placeholder="e.g., GOOGL"
                   value={newStock.symbol}
                   onChange={(e) => setNewStock({ ...newStock, symbol: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 border-slate-300 dark:border-gray-600 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  className="w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 border-slate-300 dark:border-gray-600 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2ebd85]"
                   maxLength={5}
                 />
               </div>
@@ -272,7 +272,7 @@ export default function Portfolio() {
                   placeholder="Number of shares"
                   value={newStock.quantity}
                   onChange={(e) => setNewStock({ ...newStock, quantity: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 border-slate-300 dark:border-gray-600 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  className="w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 border-slate-300 dark:border-gray-600 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2ebd85]"
                   min="1"
                 />
               </div>
@@ -283,7 +283,7 @@ export default function Portfolio() {
                   placeholder="Price per share"
                   value={newStock.purchasePrice}
                   onChange={(e) => setNewStock({ ...newStock, purchasePrice: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 border-slate-300 dark:border-gray-600 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  className="w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 border-slate-300 dark:border-gray-600 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2ebd85]"
                   min="0"
                   step="0.01"
                 />
@@ -297,7 +297,7 @@ export default function Portfolio() {
                 </button>
                 <button
                   onClick={handleAddStock}
-                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                  className="flex-1 px-4 py-2 bg-[#2ebd85] hover:bg-[#26a070] text-white rounded-lg transition-colors"
                 >
                   Add
                 </button>

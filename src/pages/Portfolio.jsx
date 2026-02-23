@@ -1,7 +1,11 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { TrendingUp, TrendingDown, Plus, X } from 'lucide-react';
 
 export default function Portfolio() {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [holdings, setHoldings] = useState([
     {
       id: '1',
@@ -139,7 +143,7 @@ export default function Portfolio() {
         <div className="px-6 py-4 border-b border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-700 flex items-center justify-between">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Holdings</h3>
             <button
-            onClick={() => setShowAddModal(true)}
+            onClick={() => isAuthenticated ? setShowAddModal(true) : navigate('/login')}
             className="bg-[#2ebd85] hover:bg-[#26a070] text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
           >
             <Plus className="w-4 h-4" />

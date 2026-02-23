@@ -1,12 +1,14 @@
 // src/components/Layout.jsx
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from 'react';
-import { User, MoonIcon, Settings, LogOut, Brain, Info } from 'lucide-react';
+import { User, MoonIcon, Settings, LogOut, LogIn, Brain, Info } from 'lucide-react';
 import { useTheme } from "../hooks/useTheme";
+import { useAuth } from "../context/AuthContext";
 import AIInsightsSidebar from './AIInsightsSidebar';
 
 function Layout() {
   const { theme, toggleTheme } = useTheme();
+  const { user, logout } = useAuth();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [aiSidebarOpen, setAiSidebarOpen] = useState(false);
   const menuRef = useRef(null);
@@ -23,6 +25,15 @@ function Layout() {
 
   const navigate = useNavigate();
 
+  const handleLogout = () => {
+    setUserMenuOpen(false);
+    logout();
+    navigate('/login', { replace: true });
+  };
+
+  // User avatar: show first letter of username, or default icon
+  const avatarLabel = user?.username?.[0]?.toUpperCase() ?? null;
+
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
       <header>
@@ -38,35 +49,70 @@ function Layout() {
                 aria-haspopup="true"
                 aria-expanded={userMenuOpen}
               >
-                <User size={28} />
+                {avatarLabel ? (
+                  <span className="w-7 h-7 flex items-center justify-center rounded-full bg-[#2ebd85] text-white text-sm font-bold">
+                    {avatarLabel}
+                  </span>
+                ) : (
+                  <User size={28} />
+                )}
               </button>
 
               {userMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl shadow-lg z-50 overflow-hidden">
-                  <button
-                    onClick={() => setUserMenuOpen(false)}
-                    className="flex items-center gap-3 w-full px-4 py-3 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors"
-                  >
-                    <Settings className="w-4 h-4 text-[#2ebd85]" />
-                    Account Settings
-
-                  </button>
+                <div className="absolute right-0 mt-2 w-52 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-xl shadow-lg z-50 overflow-hidden">
+                  {/* User info header */}
+                  {user && (
+                    <>
+                      <div className="px-4 py-3 border-b border-slate-200 dark:border-gray-700">
+                        <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{user.username}</p>
+                        <p className="text-xs text-slate-500 dark:text-gray-400 truncate">{user.email}</p>
+                      </div>
+                    </>
+                  )}
+                  {user ? (
+                    <>
                       <button
-                    onClick={() => {setUserMenuOpen(false); navigate('/about');}}
-                    className="flex items-center gap-3 w-full px-4 py-3 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors"
-                  >
-                    <Info className="w-4 h-4 text-[#2ebd85]" />
-                    About
-                  </button>
-                  
-                  <div className="border-t border-slate-200 dark:border-gray-700" />
-                  <button
-                    onClick={() => { setUserMenuOpen(false); /* add logout logic here */ }}
-                    className="flex items-center gap-3 w-full px-4 py-3 text-sm text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    Log Out
-                  </button>
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-3 w-full px-4 py-3 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors"
+                      >
+                        <Settings className="w-4 h-4 text-[#2ebd85]" />
+                        Account Settings
+                      </button>
+                      <button
+                        onClick={() => { setUserMenuOpen(false); navigate('/about'); }}
+                        className="flex items-center gap-3 w-full px-4 py-3 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors"
+                      >
+                        <Info className="w-4 h-4 text-[#2ebd85]" />
+                        About
+                      </button>
+                      <div className="border-t border-slate-200 dark:border-gray-700" />
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-3 w-full px-4 py-3 text-sm text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Log Out
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => { setUserMenuOpen(false); navigate('/about'); }}
+                        className="flex items-center gap-3 w-full px-4 py-3 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors"
+                      >
+                        <Info className="w-4 h-4 text-[#2ebd85]" />
+                        About
+                      </button>
+                      <div className="border-t border-slate-200 dark:border-gray-700" />
+                      <button
+                        onClick={() => { setUserMenuOpen(false); navigate('/login'); }}
+                        className="flex items-center gap-3 w-full px-4 py-3 text-sm text-[#2ebd85] hover:bg-[#edfaf4] dark:hover:bg-[#114832]/30 transition-colors font-medium"
+                      >
+                        <LogIn className="w-4 h-4" />
+                        Log In
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
             </div>

@@ -1,130 +1,262 @@
 # Plan: FastAPI Backend with PostgreSQL for Stockvisor MVP
 
-**TL;DR:** Create a separate `stockvisor-backend` folder alongside your frontend with FastAPI, PostgreSQL, and SQLAlchemy. Implement authentication (JWT), portfolio management, and mock stock data endpoints for the MVP. The frontend will switch from hardcoded data to API calls via Axios. Separate database from code, use environment variables for config.
+**TL;DR:** Create a separate `stockvisor-backend` folder alongside the frontend with FastAPI, PostgreSQL, and SQLAlchemy. The frontend auth system (Login page, Register page, AuthContext, Axios API service, ProtectedRoute) is **already built and awaiting a live backend**.  Browsing the site no longer requires authentication – the guard is triggered only when the user chooses to log in via the account menu or tries to add a stock from their portfolio. Priority is standing up the auth, portfolio, and stock-data endpoints so the frontend can drop its hardcoded data.
 
-## Steps
+---
 
-1. **Create backend project structure** alongside the frontend folder (`c:\Users\ranwa\Desktop\Uni\FINAL\Ryan Anwar 228939 GP\stockvisor-backend`)
-   - Directory layout: app/models/, app/routes/, app/schemas/, app/core/, app/database/, tests/
-   - `main.py` as entry point with FastAPI app initialization
-   - `requirements.txt` with FastAPI, SQLAlchemy, psycopg2, pydantic, python-jose[cryptography], python-multipart, python-dotenv
+## Current Frontend State (as of Feb 2026)
 
-2. **Set up PostgreSQL & database layer**
-   - Create `app/database.py` with SQLAlchemy engine, session management, and base model class
-   - Create `app/models/` with SQLAlchemy ORM models: User, Portfolio, Stock, Watchlist, Transaction
-   - Use `.env` file for DATABASE_URL and other config (never hardcode credentials)
+### Tech Stack
+- React 19 + React Router DOM 7 + Vite
+- Tailwind CSS v4 (explicit green theme `#2ebd85`)
+- Axios 1.13.5 — **wired up** via `src/services/api.js`
+- Chart.js / react-chartjs-2, lucide-react, react-icons
 
-3. **Implement authentication system**
-   - Create `app/core/security.py` with password hashing (bcrypt), JWT token generation
-   - Create `app/core/config.py` for SECRET_KEY and JWT settings
-   - Create `app/schemas/auth.py` with Pydantic models (UserCreate, UserLogin, Token)
-   - Create `app/routes/auth.py` with POST /auth/register and POST /auth/login endpoints
-   - Use dependency injection for `get_current_user()` to protect routes
+### What Has Been Built (frontend)
 
-4. **Implement portfolio endpoints (MVP core)**
-   - Create `app/models/portfolio.py` with holdings, transactions, cost basis tracking
-   - Create `app/schemas/portfolio.py` with Pydantic models (PortfolioItem, Transaction)
-   - Create `app/routes/portfolio.py` with:
-     - GET /portfolio/{user_id} - get user's holdings
-     - POST /portfolio - add new stock to portfolio
-     - DELETE /portfolio/{stock_id} - remove stock
-     - POST /transactions - record buy/sell transactions
+| File | Status |
+|------|--------|
+| `src/services/api.js` | ✅ Axios instance → `VITE_API_URL` or `http://localhost:8000`; auto-attaches JWT from `localStorage`; auto-redirects on 401 |
+| `src/context/AuthContext.jsx` | ✅ `AuthProvider`, `login()`, `register()`, `logout()`, `isAuthenticated`; user state persisted to `localStorage` |
+| `src/hooks/useAuth.jsx` | ✅ Re-exports `useAuth` from context |
+| `src/pages/Login.jsx` | ✅ Email + password form, error banner, spinner, links to `/register` |
+| `src/pages/Register.jsx` | ✅ Username + email + password + confirm, client-side validation, links to `/login` |
+| `src/components/ProtectedRoute.jsx` | ✅ Redirects unauthenticated users to `/login`; shows spinner while auth loads |
+| `src/App.jsx` | ✅ `/login` and `/register` are public; other pages are freely browsable. Auth is only enforced when a user clicks the login link in the account menu or taps **Add Stock** on Portfolio (redirects to `/login`). |
+| `src/main.jsx` | ✅ `<AuthProvider>` wraps the entire app |
+| `src/components/Layout.jsx` | ✅ Shows user avatar initial + username/email in dropdown; `logout()` navigates to `/login` |
 
-5. **Implement mock stock data endpoint**
-   - Create `app/routes/stocks.py` with:
-     - GET /stocks/quote/{symbol} - return hardcoded price data 
-     - GET /stocks/search - search functionality
-     - GET /watchlist/{user_id} - user's watchlist
-   - Use mock data structure with real AAPL, MSFT, GOOGL, TSLA prices (structure ready for real API integration later)
+### Pages & Data Status
 
-6. **Set up CORS for frontend integration**
-   - Add CORSMiddleware in `main.py` to allow requests from `http://localhost:5173` (Vite dev server)
+| Page | Current Data | Backend Priority |
+|------|-------------|-----------------|
+| **Home** | Hardcoded 6 stocks | High — stock quotes + user watchlist |
+| **Portfolio** | Hardcoded 4 holdings, local add/remove | High — persisted holdings + prices |
+| **Community** | Hardcoded discussions + contributors | Medium |
+| **News** | Hardcoded articles | Medium |
+| **Tips** | Hardcoded educational content | Low (static is fine) |
+| **About** | Static page | None |
 
-7. **Create API documentation file**
-   - Generate or document endpoint specs so frontend knows what to expect
-   - Reference in each route file
+---
 
-8. **Update frontend for API integration** (later step you'll execute)
-   - Create `src/services/api.js` with Axios instance pointing to `http://localhost:8000`
-   - Create `src/hooks/useAuth.js`, `usePortfolio.js`, `useStocks.js` for data fetching
-   - Replace hardcoded data in components with API calls
+---
 
-## Verification
+## Backend Steps
 
-- Run FastAPI server: `uvicorn app.main:app --reload` (port 8000)
-- Test auth flow: POST to `/auth/register`, then `/auth/login`, verify JWT token returned
-- Test portfolio endpoint: GET `/portfolio/{user_id}` returns user holdings (requires auth token)
-- Test stocks endpoint: GET `/stocks/quote/AAPL` returns mock price data
-- Verify CORS works: Frontend on port 5173 can call backend on 8000 without errors
-- (Optional) Use FastAPI's built-in Swagger docs at `http://localhost:8000/docs`
+### 1. Create project structure
+
+Location: `c:\Users\ranwa\Desktop\Uni\FINAL\Ryan Anwar 228939 GP\stockvisor-backend`
+
+```
+stockvisor-backend/
+├── app/
+│   ├── main.py
+│   ├── database.py
+│   ├── models/
+│   │   ├── __init__.py
+│   │   ├── user.py
+│   │   ├── portfolio.py
+│   │   └── watchlist.py
+│   ├── schemas/
+│   │   ├── __init__.py
+│   │   ├── auth.py
+│   │   ├── portfolio.py
+│   │   └── stocks.py
+│   ├── routes/
+│   │   ├── __init__.py
+│   │   ├── auth.py
+│   │   ├── portfolio.py
+│   │   ├── stocks.py
+│   │   └── watchlist.py
+│   └── core/
+│       ├── config.py
+│       └── security.py
+├── tests/
+├── .env
+├── .env.example
+└── requirements.txt
+```
+
+`requirements.txt`:
+```
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg2-binary
+pydantic[email]
+pydantic-settings
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+python-dotenv
+```
+
+---
+
+### 2. Database layer
+
+- `app/database.py` — SQLAlchemy engine from `DATABASE_URL` env var, `SessionLocal`, `Base`
+- `app/models/user.py` — `User`: `id`, `username`, `email`, `hashed_password`, `created_at`
+- `app/models/portfolio.py` — `Holding`: `id`, `user_id (FK)`, `symbol`, `name`, `quantity`, `purchase_price`, `created_at`
+- `app/models/watchlist.py` — `WatchlistItem`: `id`, `user_id (FK)`, `symbol`, `added_at`
+
+---
+
+### 3. Auth system — must match frontend contract exactly
+
+The frontend (`AuthContext.jsx`) calls these endpoints with these exact shapes:
+
+#### `POST /auth/register`
+- **Body (JSON):** `{ "username": str, "email": str, "password": str }`
+- **Response:** `{ "access_token": str, "token_type": "bearer", "user": { "id": int, "username": str, "email": str } }`
+
+#### `POST /auth/login`
+- **Body (form-encoded / `OAuth2PasswordRequestForm`):** `username=<email>&password=<password>`
+  > The frontend sends the `username` field containing the user's **email**. FastAPI's `OAuth2PasswordRequestForm` uses `username` by convention.
+- **Response:** `{ "access_token": str, "token_type": "bearer", "user": { "id": int, "username": str, "email": str } }`
+
+#### Implementation files:
+- `app/core/config.py` — `SECRET_KEY`, `ALGORITHM = "HS256"`, `ACCESS_TOKEN_EXPIRE_MINUTES = 60`
+- `app/core/security.py` — `hash_password()`, `verify_password()`, `create_access_token()`, `get_current_user()` dependency
+- `app/schemas/auth.py` — `UserCreate`, `Token`, `UserOut` Pydantic models
+- `app/routes/auth.py` — `/auth/register` and `/auth/login` endpoints
+
+---
+
+### 4. Portfolio endpoints
+
+Frontend `Portfolio.jsx` currently uses local React state. Replace with API calls once these endpoints exist.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/portfolio/` | Return all holdings for the authenticated user (merged with live prices) |
+| `POST` | `/portfolio/` | Add a holding: `{ symbol, name, quantity, purchase_price }` |
+| `DELETE` | `/portfolio/{holding_id}` | Remove a holding (must belong to current user) |
+
+Expected GET response item shape (matches frontend `holdings` state):
+```json
+{
+  "id": "1",
+  "symbol": "AAPL",
+  "name": "Apple Inc.",
+  "quantity": 50,
+  "purchasePrice": 150.00,
+  "currentPrice": 178.45,
+  "dailyChange": 2.34,
+  "dailyChangePercent": 1.33
+}
+```
+> `currentPrice`, `dailyChange`, `dailyChangePercent` are injected by the portfolio endpoint from the stock quotes data before returning.
+
+---
+
+### 5. Stock data endpoint (mock, real-API-ready)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/stocks/quote/{symbol}` | Return price data for a symbol |
+| `GET` | `/stocks/search?q={query}` | Search stocks by symbol or name |
+
+Expected quote response:
+```json
+{
+  "symbol": "AAPL",
+  "name": "Apple Inc.",
+  "price": 178.45,
+  "change": 2.34,
+  "changePercent": 1.33,
+  "volume": "52.3M"
+}
+```
+
+Start with a `MOCK_PRICES` dict in `app/routes/stocks.py`. To add a real data source later (Alpha Vantage / Polygon.io), only the internal implementation changes — the response shape stays fixed.
+
+---
+
+### 6. Watchlist endpoint
+
+The Home page's starred favorites should persist per-user via this API.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/watchlist/` | Get authenticated user's watchlist symbols |
+| `POST` | `/watchlist/` | Add `{ "symbol": str }` |
+| `DELETE` | `/watchlist/{symbol}` | Remove symbol |
+
+---
+
+### 7. CORS (`app/main.py`)
+
+```python
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+```
+
+---
+
+### 8. Environment variables (`.env`)
+
+```env
+DATABASE_URL=postgresql://postgres:yourpassword@localhost:5432/stockvisor
+SECRET_KEY=your-256-bit-secret-here
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+```
+
+Add `.env.example` with placeholder values. Add `.env` to `.gitignore`.
+
+Frontend `.env` (in `stockvisor-frontend/`):
+```env
+VITE_API_URL=http://localhost:8000
+```
+
+---
+
+### 9. Frontend API integration (after backend is running)
+
+| File | Change needed |
+|------|--------------|
+| `src/services/portfolioService.js` | `getPortfolio()`, `addHolding()`, `removeHolding()` via `api.js` |
+| `src/services/stockService.js` | `getQuote(symbol)`, `searchStocks(query)` |
+| `src/services/watchlistService.js` | `getWatchlist()`, `addToWatchlist(symbol)`, `removeFromWatchlist(symbol)` |
+| `src/pages/Portfolio.jsx` | Replace `useState` hardcoded data with `useEffect` + `portfolioService` |
+| `src/pages/Home.jsx` | Replace hardcoded stocks with `stockService`; persist starred via `watchlistService` |
+
+---
+
+## Verification Checklist
+
+```bash
+# Backend
+cd stockvisor-backend
+uvicorn app.main:app --reload       # http://localhost:8000/docs
+
+# Frontend
+cd stockvisor-frontend
+npm run dev                          # http://localhost:5173
+```
+
+- [ ] `POST /auth/register` → returns `{ access_token, user }` → frontend redirects to `/`
+- [ ] `POST /auth/login` (form-encoded) → returns `{ access_token, user }` → username appears in nav
+- [ ] Any 401 response → frontend clears token and redirects to `/login`
+- [ ] `GET /portfolio/` (with `Authorization: Bearer <token>`) → returns user holdings
+- [ ] `GET /stocks/quote/AAPL` → returns price object
+- [ ] Frontend on `:5173` calls backend on `:8000` without CORS errors
+- [ ] FastAPI Swagger: `http://localhost:8000/docs`
+
+---
 
 ## Decisions
 
-- PostgreSQL chosen for relational data (users, portfolios, transactions)
-- JWT for stateless authentication (scalable, easier than sessions)
-- Mock stock data initially to focus on backend structure—real API integration is straightforward later
-- Separate `stockvisor-backend` folder keeps projects cleanly isolated; can be version-controlled separately
-
-## Frontend Analysis
-
-### Technical Stack
-- React 19.2.0 with React Router DOM 7.13.0 for client-side routing
-- Vite as build tool (modern, fast bundler)
-- Tailwind CSS for styling
-- Axios 1.13.5 for HTTP requests (installed but not currently used)
-- Chart.js for data visualization
-- React Icons for UI components
-
-### Pages & Current Data Status
-
-| Page | Current State | Backend Needs |
-|------|---------------|----------------|
-| **Home** | Dashboard with hardcoded watchlist (AAPL, MSFT, GOOGL, TSLA) | Real-time stock prices, user watchlist management |
-| **Portfolio** | Hardcoded holdings with manual calculations (total value, gains) | User portfolio storage, transaction history, live price updates |
-| **Community** | Hardcoded discussion posts and top contributors | Discussion threads API, user reputation system, comment storage |
-| **News** | Hardcoded market news articles | News feed API, category filtering, article management |
-| **Tips** | Hardcoded educational content about trading | Could be static frontend content or backend-managed CMS |
-| **About** | Static informational page | No backend needed |
-
-### Existing API Integration Patterns
-- None yet - Axios is installed but not utilized anywhere
-- No environment variables configured
-- No API service layer or custom hooks set up
-- All data is hardcoded directly in components
-
-### Critical Backend Features Needed
-
-1. **User Authentication & Management**
-   - Login/registration system
-   - User profiles and preferences
-   - Session management
-
-2. **Portfolio Management**
-   - Store user stock holdings
-   - Track purchase/cost basis data
-   - Calculate gains/losses automatically
-   - Update based on current market prices
-
-3. **Stock Data Service**
-   - Real-time or cached stock prices
-   - Stock search/lookup functionality
-   - Watchlist CRUD operations
-   - 24h price change data
-
-4. **Community System**
-   - Discussion threads CRUD
-   - Comments/replies system
-   - User reputation/points tracking
-   - Top contributors ranking
-
-5. **Market News** 
-   - Aggregate or fetch news articles
-   - Category-based filtering (Market News, Earnings, Commodities, Crypto)
-   - Article metadata (source, date, impact level)
-
-### Architecture Notes
-- Routing is handled client-side via React Router (no page-based backend routing needed)
-- Components directory is empty (no reusable components created yet)
-- Hooks directory is empty (no custom React hooks for data fetching)
-- No CORS or proxy configuration visible
-- Site uses gradient dark theme (slate-900 base with blue accents)
+- **PostgreSQL** for relational auth + portfolio data
+- **JWT (HS256)** stateless auth — stored in `localStorage` as `sv_token` + `sv_user`
+- **OAuth2PasswordRequestForm** for login — frontend sends `username` field containing the email (FastAPI convention)
+- **Mock stock data first**, real API later — response shape is fixed so frontend never changes
+- `stockvisor-backend` folder isolated alongside `stockvisor-frontend`
+- `sv_token` / `sv_user` localStorage keys namespaced to avoid collisions with other apps

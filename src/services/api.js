@@ -12,14 +12,18 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// On 401, clear auth and redirect to login
+// On 401, clear stored auth — but NOT for auth endpoints themselves.
+// Instead of hard-redirecting (which destroys React state), dispatch a custom
+// event so AuthContext can handle logout + redirect through React Router.
 api.interceptors.response.use(
   (res) => res,
   (error) => {
-    if (error.response?.status === 401) {
+    const url = error.config?.url || '';
+    const isAuthRoute = url.includes('/auth/login') || url.includes('/auth/register');
+    if (error.response?.status === 401 && !isAuthRoute) {
       localStorage.removeItem('sv_token');
       localStorage.removeItem('sv_user');
-      window.location.href = '/login';
+      window.dispatchEvent(new Event('auth:expired'));
     }
     return Promise.reject(error);
   }

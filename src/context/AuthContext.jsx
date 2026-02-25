@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
 
 const AuthContext = createContext(null);
@@ -6,6 +6,12 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const logout = useCallback(() => {
+    localStorage.removeItem('sv_token');
+    localStorage.removeItem('sv_user');
+    setUser(null);
+  }, []);
 
   // Restore session from localStorage on page load
   useEffect(() => {
@@ -21,17 +27,18 @@ export function AuthProvider({ children }) {
     setLoading(false);
   }, []);
 
+  // Listen for expired-token events from the axios interceptor
+  useEffect(() => {
+    const handleExpired = () => logout();
+    window.addEventListener('auth:expired', handleExpired);
+    return () => window.removeEventListener('auth:expired', handleExpired);
+  }, [logout]);
+
   /**
-   * Login — FastAPI OAuth2 expects form-encoded body with `username` + `password`
+   * Login — JSON body with email + password
    */
   const login = async (email, password) => {
-    const params = new URLSearchParams();
-    params.append('username', email);
-    params.append('password', password);
-
-    const { data } = await api.post('/auth/login', params, {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    });
+    const { data } = await api.post('/auth/login', { email, password });
 
     localStorage.setItem('sv_token', data.access_token);
     localStorage.setItem('sv_user', JSON.stringify(data.user));
@@ -48,12 +55,6 @@ export function AuthProvider({ children }) {
     localStorage.setItem('sv_user', JSON.stringify(data.user));
     setUser(data.user);
     return data;
-  };
-
-  const logout = () => {
-    localStorage.removeItem('sv_token');
-    localStorage.removeItem('sv_user');
-    setUser(null);
   };
 
   return (

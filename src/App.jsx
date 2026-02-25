@@ -8,8 +8,12 @@ import News from "./pages/News";
 import Tips from "./pages/Tips";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import { useTheme } from "./hooks/useTheme";
 
 function App() {
+  // Apply theme at the root so all pages (including login/register) get dark mode
+  useTheme();
+
   return (
     <Routes>
       {/* Public auth routes — no nav/layout wrapper */}

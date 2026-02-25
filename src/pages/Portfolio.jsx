@@ -1,56 +1,94 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { TrendingUp, TrendingDown, Plus, X } from 'lucide-react';
+import { TrendingUp, TrendingDown, Plus, X, RefreshCw, Search } from 'lucide-react';
+import api from '../services/api';
 
 export default function Portfolio() {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [holdings, setHoldings] = useState([
-    {
-      id: '1',
-      symbol: 'AAPL',
-      name: 'Apple Inc.',
-      quantity: 50,
-      purchasePrice: 150.00,
-      currentPrice: 178.45,
-      dailyChange: 2.34,
-      dailyChangePercent: 1.33,
-    },
-    {
-      id: '2',
-      symbol: 'MSFT',
-      name: 'Microsoft Corp.',
-      quantity: 30,
-      purchasePrice: 320.00,
-      currentPrice: 378.91,
-      dailyChange: 5.67,
-      dailyChangePercent: 1.52,
-    },
-    {
-      id: '3',
-      symbol: 'NVDA',
-      name: 'NVIDIA Corp.',
-      quantity: 15,
-      purchasePrice: 650.00,
-      currentPrice: 722.48,
-      dailyChange: 12.30,
-      dailyChangePercent: 1.73,
-    },
-    {
-      id: '4',
-      symbol: 'TSLA',
-      name: 'Tesla Inc.',
-      quantity: 20,
-      purchasePrice: 280.00,
-      currentPrice: 242.84,
-      dailyChange: -4.15,
-      dailyChangePercent: -1.68,
-    },
-  ]);
+  const [holdings, setHoldings] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [addError, setAddError] = useState('');
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [newStock, setNewStock] = useState({ symbol: '', quantity: '', purchasePrice: '' });
+  const [addLoading, setAddLoading] = useState(false);
+
+  // Symbol search / autocomplete state
+  const [symbolQuery, setSymbolQuery] = useState('');
+  const [symbolResults, setSymbolResults] = useState([]);
+  const [symbolSearchLoading, setSymbolSearchLoading] = useState(false);
+  const [showSymbolDropdown, setShowSymbolDropdown] = useState(false);
+  const symbolRef = useRef(null);
+
+  // Debounced search for symbol autocomplete
+  useEffect(() => {
+    if (!symbolQuery.trim()) {
+      setSymbolResults([]);
+      setShowSymbolDropdown(false);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setSymbolSearchLoading(true);
+      try {
+        const { data } = await api.get('/stocks/search', { params: { q: symbolQuery.trim() } });
+        setSymbolResults(data);
+      } catch {
+        setSymbolResults([]);
+      } finally {
+        setSymbolSearchLoading(false);
+        setShowSymbolDropdown(true);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [symbolQuery]);
+
+  // Close symbol dropdown on outside click
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (symbolRef.current && !symbolRef.current.contains(e.target)) {
+        setShowSymbolDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  const selectSymbol = (symbol, name) => {
+    setNewStock((prev) => ({ ...prev, symbol }));
+    setSymbolQuery(name ? `${symbol} — ${name}` : symbol);
+    setShowSymbolDropdown(false);
+  };
+
+  const resetModal = () => {
+    setShowAddModal(false);
+    setAddError('');
+    setSymbolQuery('');
+    setSymbolResults([]);
+    setShowSymbolDropdown(false);
+    setNewStock({ symbol: '', quantity: '', purchasePrice: '' });
+  };
+
+  const fetchHoldings = useCallback(async () => {
+    if (!isAuthenticated) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const { data } = await api.get('/portfolio/');
+      setHoldings(data);
+    } catch (err) {
+      console.error('Failed to fetch holdings:', err);
+      setError('Failed to load portfolio. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    fetchHoldings();
+  }, [fetchHoldings]);
 
   const calculateMetrics = (holding) => {
     const totalInvested = holding.quantity * holding.purchasePrice;
@@ -79,25 +117,33 @@ export default function Portfolio() {
   const portfolioProfit = totalMetrics.currentValue - totalMetrics.totalInvested;
   const portfolioProfitPercent = (portfolioProfit / totalMetrics.totalInvested) * 100;
 
-  const handleRemoveHolding = (id) => {
-    setHoldings(holdings.filter(h => h.id !== id));
+  const handleRemoveHolding = async (id) => {
+    try {
+      await api.delete(`/portfolio/${id}`);
+      setHoldings(holdings.filter(h => h.id !== id));
+    } catch (err) {
+      console.error('Failed to remove holding:', err);
+    }
   };
 
-  const handleAddStock = () => {
+  const handleAddStock = async () => {
     if (!newStock.symbol || !newStock.quantity || !newStock.purchasePrice) return;
-    const entry = {
-      id: Date.now().toString(),
-      symbol: newStock.symbol.toUpperCase(),
-      name: newStock.symbol.toUpperCase(),
-      quantity: parseFloat(newStock.quantity),
-      purchasePrice: parseFloat(newStock.purchasePrice),
-      currentPrice: parseFloat(newStock.purchasePrice),
-      dailyChange: 0,
-      dailyChangePercent: 0,
-    };
-    setHoldings([...holdings, entry]);
-    setNewStock({ symbol: '', quantity: '', purchasePrice: '' });
-    setShowAddModal(false);
+    setAddLoading(true);
+    setAddError('');
+    try {
+      const { data } = await api.post('/portfolio/', {
+        symbol: newStock.symbol.toUpperCase(),
+        quantity: parseFloat(newStock.quantity),
+        purchase_price: parseFloat(newStock.purchasePrice),
+      });
+      setHoldings([...holdings, data]);
+      resetModal();
+    } catch (err) {
+      const msg = err.response?.data?.detail || 'Failed to add stock.';
+      setAddError(typeof msg === 'string' ? msg : 'Failed to add stock.');
+    } finally {
+      setAddLoading(false);
+    }
   };
 
   return (
@@ -108,49 +154,97 @@ export default function Portfolio() {
         <p className="text-slate-600 dark:text-gray-400">Track your investments and monitor daily performance</p>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-[#2ebd85] hover:shadow-md transition-shadow">
-          <p className="text-sm text-slate-600 dark:text-gray-400 mb-1">Total Invested</p>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white">${totalMetrics.totalInvested.toFixed(2)}</p>
+      {/* Not logged in prompt */}
+      {!isAuthenticated && (
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-12 shadow-sm border border-[#2ebd85] text-center">
+          <p className="text-slate-600 dark:text-gray-400 mb-4">Log in to track your portfolio</p>
+          <button
+            onClick={() => navigate('/login')}
+            className="bg-[#2ebd85] hover:bg-[#26a070] text-white px-6 py-2.5 rounded-lg font-semibold transition-colors"
+          >
+            Sign In
+          </button>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-[#2ebd85] hover:shadow-md transition-shadow">
-          <p className="text-sm text-slate-600 dark:text-gray-400 mb-1">Current Value</p>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white">${totalMetrics.currentValue.toFixed(2)}</p>
-        </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-[#2ebd85] hover:shadow-md transition-shadow">
-          <p className="text-sm text-slate-600 dark:text-gray-400 mb-1">Total Profit/Loss</p>
-          <div className="flex items-center space-x-2">
-            {portfolioProfit >= 0 ? (
-              <>
-                <TrendingUp className="w-5 h-5 text-[#2ebd85]" />
-                <p className="text-2xl font-bold text-[#2ebd85]">+${portfolioProfit.toFixed(2)}</p>
-                <p className="text-sm font-semibold text-[#2ebd85]">({portfolioProfitPercent.toFixed(2)}%)</p>
-              </>
-            ) : (
-              <>
-                <TrendingDown className="w-5 h-5 text-rose-600" />
-                <p className="text-2xl font-bold text-rose-600">-${Math.abs(portfolioProfit).toFixed(2)}</p>
-                <p className="text-sm font-semibold text-rose-600">({portfolioProfitPercent.toFixed(2)}%)</p>
-              </>
-            )}
+      )}
+
+      {isAuthenticated && (
+        <>
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-[#2ebd85] hover:shadow-md transition-shadow">
+              <p className="text-sm text-slate-600 dark:text-gray-400 mb-1">Total Invested</p>
+              <p className="text-2xl font-bold text-slate-900 dark:text-white">${totalMetrics.totalInvested.toFixed(2)}</p>
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-[#2ebd85] hover:shadow-md transition-shadow">
+              <p className="text-sm text-slate-600 dark:text-gray-400 mb-1">Current Value</p>
+              <p className="text-2xl font-bold text-slate-900 dark:text-white">${totalMetrics.currentValue.toFixed(2)}</p>
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-[#2ebd85] hover:shadow-md transition-shadow">
+              <p className="text-sm text-slate-600 dark:text-gray-400 mb-1">Total Profit/Loss</p>
+              <div className="flex items-center space-x-2">
+                {portfolioProfit >= 0 ? (
+                  <>
+                    <TrendingUp className="w-5 h-5 text-[#2ebd85]" />
+                    <p className="text-2xl font-bold text-[#2ebd85]">+${portfolioProfit.toFixed(2)}</p>
+                    <p className="text-sm font-semibold text-[#2ebd85]">({isNaN(portfolioProfitPercent) ? '0.00' : portfolioProfitPercent.toFixed(2)}%)</p>
+                  </>
+                ) : (
+                  <>
+                    <TrendingDown className="w-5 h-5 text-rose-600" />
+                    <p className="text-2xl font-bold text-rose-600">-${Math.abs(portfolioProfit).toFixed(2)}</p>
+                    <p className="text-sm font-semibold text-rose-600">({portfolioProfitPercent.toFixed(2)}%)</p>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
 
       {/* Holdings Table */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-[#2ebd85] overflow-hidden transition-colors duration-300">
         <div className="px-6 py-4 border-b border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-700 flex items-center justify-between">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Holdings</h3>
+          <div className="flex items-center space-x-3">
             <button
-            onClick={() => isAuthenticated ? setShowAddModal(true) : navigate('/login')}
-            className="bg-[#2ebd85] hover:bg-[#26a070] text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Stock</span>
-          </button>
+              onClick={fetchHoldings}
+              disabled={loading}
+              className="p-2 text-slate-500 dark:text-gray-400 hover:text-[#2ebd85] transition-colors"
+              title="Refresh portfolio"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="bg-[#2ebd85] hover:bg-[#26a070] text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Stock</span>
+            </button>
+          </div>
         </div>
 
+        {/* Loading state */}
+        {loading && holdings.length === 0 && (
+          <div className="flex items-center justify-center py-16 text-slate-500 dark:text-gray-400">
+            <RefreshCw className="w-5 h-5 animate-spin mr-2" /> Loading portfolio…
+          </div>
+        )}
+
+        {/* Error state */}
+        {error && holdings.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-16 text-rose-500">
+            <p>{error}</p>
+            <button onClick={fetchHoldings} className="mt-3 text-sm text-[#2ebd85] hover:underline">Retry</button>
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!loading && !error && holdings.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-16 text-slate-500 dark:text-gray-400">
+            <p>No holdings yet. Add your first stock!</p>
+          </div>
+        )}
+
+        {holdings.length > 0 && (
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-slate-50 dark:bg-gray-700 border-b border-slate-200 dark:border-gray-700">
@@ -241,6 +335,7 @@ export default function Portfolio() {
             </tbody>
           </table>
         </div>
+        )}
       </div>
 
       {/* Add Stock Modal */}
@@ -250,24 +345,72 @@ export default function Portfolio() {
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-slate-900 dark:text-white">Add Stock to Portfolio</h3>
               <button
-                onClick={() => setShowAddModal(false)}
+                onClick={resetModal}
                 className="p-1 rounded transition-colors hover:bg-slate-100 dark:hover:bg-gray-700"
               >
                 <X className="w-5 h-5 text-slate-600 dark:text-gray-400" />
               </button>
             </div>
 
+            {addError && (
+              <div className="mb-4 px-4 py-3 rounded-lg bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-sm">
+                {addError}
+              </div>
+            )}
+
             <div className="space-y-4">
-              <div>
+              <div ref={symbolRef} className="relative">
                 <label className="block text-sm font-medium text-slate-600 dark:text-gray-400 mb-2">Stock Symbol</label>
-                <input
-                  type="text"
-                  placeholder="e.g., GOOGL"
-                  value={newStock.symbol}
-                  onChange={(e) => setNewStock({ ...newStock, symbol: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 border-slate-300 dark:border-gray-600 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2ebd85]"
-                  maxLength={5}
-                />
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-gray-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="Search for a stock…"
+                    value={symbolQuery}
+                    onChange={(e) => {
+                      setSymbolQuery(e.target.value);
+                      setNewStock((prev) => ({ ...prev, symbol: '' }));
+                    }}
+                    onFocus={() => { if (symbolResults.length) setShowSymbolDropdown(true); }}
+                    className="w-full pl-9 pr-4 py-2 border rounded-lg bg-white dark:bg-gray-700 border-slate-300 dark:border-gray-600 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2ebd85] text-sm"
+                    autoComplete="off"
+                  />
+                </div>
+
+                {/* Autocomplete dropdown */}
+                {showSymbolDropdown && (
+                  <div className="absolute top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto rounded-lg border border-[#2ebd85] bg-white dark:bg-gray-800 shadow-lg z-50">
+                    {symbolSearchLoading ? (
+                      <div className="flex items-center justify-center py-3 text-sm text-slate-500 dark:text-gray-400">
+                        <RefreshCw className="w-4 h-4 animate-spin mr-2" /> Searching…
+                      </div>
+                    ) : symbolResults.length === 0 ? (
+                      <div className="py-3 px-4 text-center text-sm text-rose-500">No results found</div>
+                    ) : (
+                      symbolResults.map((item) => (
+                        <button
+                          key={item.symbol}
+                          type="button"
+                          onClick={() => selectSymbol(item.symbol, item.name)}
+                          className="w-full text-left px-4 py-2.5 flex items-center gap-3 hover:bg-[#edfaf4] dark:hover:bg-gray-700 transition-colors"
+                        >
+                          <span className="font-bold text-sm text-slate-900 dark:text-white">{item.symbol}</span>
+                          <span className="text-xs text-slate-500 dark:text-gray-400 truncate">{item.name}</span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+
+                {/* Selected symbol badge */}
+                {newStock.symbol && (
+                  <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#edfaf4] dark:bg-[#114832]/30 border border-[#2ebd85] text-sm font-semibold text-[#2ebd85]">
+                    {newStock.symbol}
+                    <button type="button" onClick={() => { setNewStock((prev) => ({ ...prev, symbol: '' })); setSymbolQuery(''); }} className="hover:text-rose-500 transition-colors">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-600 dark:text-gray-400 mb-2">Quantity</label>
@@ -294,21 +437,24 @@ export default function Portfolio() {
               </div>
               <div className="flex space-x-3 pt-4">
                 <button
-                  onClick={() => setShowAddModal(false)}
+                  onClick={resetModal}
                   className="flex-1 px-4 py-2 rounded-lg transition-colors bg-slate-200 dark:bg-gray-700 text-slate-900 dark:text-white hover:bg-slate-300 dark:hover:bg-gray-600"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleAddStock}
-                  className="flex-1 px-4 py-2 bg-[#2ebd85] hover:bg-[#26a070] text-white rounded-lg transition-colors"
+                  disabled={addLoading}
+                  className="flex-1 px-4 py-2 bg-[#2ebd85] hover:bg-[#26a070] disabled:opacity-60 text-white rounded-lg transition-colors flex items-center justify-center"
                 >
-                  Add
+                  {addLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'Add'}
                 </button>
               </div>
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );

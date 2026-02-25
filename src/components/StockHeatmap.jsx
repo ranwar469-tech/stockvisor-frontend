@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Chart } from "react-google-charts";
+import api from '../services/api';
 
 // 1. Theme colors for the Stock Market (Red to Green)
 export const options = {
@@ -32,8 +33,7 @@ const StockHeatmap = () => {
   useEffect(() => {
     const fetchHeatmapData = async () => {
       try {
-        const response = await fetch("http://localhost:8000/heatmap");
-        const flatData = await response.json();
+        const { data: flatData } = await api.get('/api/heatmap');
 
         // 2. Build the Google Charts Array Format
         // Header Row: [ID, Parent, Size, ColorValue]

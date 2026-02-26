@@ -71,7 +71,7 @@ function Layout() {
                   {user ? (
                     <>
                       <button
-                        onClick={() => setUserMenuOpen(false)}
+                        onClick={() => {setUserMenuOpen(false); navigate('/settings');}}
                         className="flex items-center gap-3 w-full px-4 py-3 text-sm text-slate-700 dark:text-gray-200 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors"
                       >
                         <Settings className="w-4 h-4 text-[#2ebd85]" />

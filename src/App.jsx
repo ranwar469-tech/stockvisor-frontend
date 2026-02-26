@@ -6,6 +6,7 @@ import Portfolio from "./pages/Portfolio";
 import Community from "./pages/Community";
 import News from "./pages/News";
 import Tips from "./pages/Tips";
+import AccountSettings from "./pages/AccountSettings";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import { useTheme } from "./hooks/useTheme";
@@ -28,6 +29,7 @@ function App() {
         <Route path="community" element={<Community />} />
         <Route path="news" element={<News />} />
         <Route path="tips" element={<Tips />} />
+        <Route path="settings" element={<AccountSettings />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

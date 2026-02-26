@@ -57,6 +57,14 @@ export function AuthProvider({ children }) {
     return data;
   };
 
+  const updateUser = useCallback((updates) => {
+    setUser((prev) => {
+      const updated = { ...prev, ...updates };
+      localStorage.setItem('sv_user', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -65,6 +73,7 @@ export function AuthProvider({ children }) {
         login,
         register,
         logout,
+        updateUser,
         isAuthenticated: !!user,
       }}
     >

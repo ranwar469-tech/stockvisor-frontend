@@ -2,11 +2,29 @@ import { Activity, BarChart3, Brain } from 'lucide-react';
 import TradingViewWidget from '../components/StockWdgets';
 import StockHeatmap from '../components/StockHeatmap';
 import StocksTable from '../components/StocksTable';
+import { useEffect, useState } from 'react';
+import api from '../services/api';
+
 
 export default function Home() {
+  const [marketStatus,setMarketStatus]=useState("Loading...");
+
+  useEffect(()=>{
+  const fetchMarketStatus = async () => {
+    try {
+      const response = await api.get('/stocks/status');
+      let statusText = response.data.status[0].toUpperCase()+response.data.status.slice(1);
+      setMarketStatus(statusText);
+    } catch (error) {
+      console.error('Failed to fetch market status:', error);
+    }
+  };
+  fetchMarketStatus();
+}, []);
+
   const marketStats = [
     { label: 'Market Sentiment', value: 'Bullish 🔥', icon: Brain },
-    { label: 'Total Volume', value: '286.3M', icon: Activity },
+    { label: 'US Market Status', value: marketStatus, icon: Activity },
     { label: 'Active Stocks', value: '6,247', icon: BarChart3 },
   ];
 
@@ -18,7 +36,7 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch" style={{ gridAutoRows: '1fr' }}>
             {/* Market Stats – stacked vertically */}
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 mt-2">
               {marketStats.map((stat) => (
                 <div
                   key={stat.label}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Eye, EyeOff, TrendingUp, LogIn } from 'lucide-react';
+import { Eye, EyeOff, TrendingUp, LogIn, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
@@ -37,6 +37,13 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900 px-4">
+      <button
+        onClick={() => navigate('/')}
+        className="absolute top-6 left-6 flex items-center gap-1.5 text-sm text-slate-500 dark:text-gray-400 hover:text-[#2ebd85] transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Back
+      </button>
       <div className="w-full max-w-md">
 
         {/* Logo / Brand */}

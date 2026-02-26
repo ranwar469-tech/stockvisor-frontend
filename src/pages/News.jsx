@@ -1,63 +1,30 @@
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import api from '../services/api';
 
 export default function News() {
-  const newsArticles = [
-    {
-      id: 1,
-      headline: 'Fed Signals Steady Rate Path Amid Economic Growth',
-      source: 'MarketWatch',
-      date: '2 hours ago',
-      category: 'Market News',
-      impact: 'Positive',
-      image: '📊'
-    },
-    {
-      id: 2,
-      headline: 'Tech Giants Report Strong Earnings, Market Rally Continues',
-      source: 'Bloomberg',
-      date: '4 hours ago',
-      category: 'Earnings',
-      impact: 'Positive',
-      image: '📈'
-    },
-    {
-      id: 3,
-      headline: 'Oil Prices Surge on Supply Concerns',
-      source: 'Reuters',
-      date: '6 hours ago',
-      category: 'Commodities',
-      impact: 'Mixed',
-      image: '⛽'
-    },
-    {
-      id: 4,
-      headline: 'Cryptocurrency Market Shows Signs of Stabilization',
-      source: 'CoinDesk',
-      date: '8 hours ago',
-      category: 'Crypto',
-      impact: 'Positive',
-      image: '₿'
-    },
-  ];
+  const [newsArticles, setNewsArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const getImpactBadge = (impact) => {
-    switch (impact) {
-      case 'Positive':
-        return {
-          icon: <TrendingUp className="w-3 h-3" />,
-          classes: 'text-[#2ebd85] bg-[#edfaf4] dark:bg-[#114832]/30',
-        };
-      case 'Negative':
-        return {
-          icon: <TrendingDown className="w-3 h-3" />,
-          classes: 'text-rose-600 bg-rose-50 dark:bg-rose-900/30',
-        };
-      default:
-        return {
-          icon: <Minus className="w-3 h-3" />,
-          classes: 'text-yellow-600 bg-yellow-50 dark:bg-yellow-900/30',
-        };
-    }
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        setError('');
+        const { data } = await api.get('/stocks/news');
+        setNewsArticles(Array.isArray(data) ? data : []);
+      } catch (err) {
+        setError('Failed to load news. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNews();
+  }, []);
+
+  const formatDate = (unixSeconds) => {
+    if (!unixSeconds) return '';
+    return new Date(unixSeconds * 1000).toLocaleString();
   };
 
   return (
@@ -72,36 +39,60 @@ export default function News() {
         <div className="px-6 py-4 border-b border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-700">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Latest Articles</h3>
         </div>
-        <div className="divide-y divide-slate-200 dark:divide-gray-700">
-          {newsArticles.map((article) => {
-            const badge = getImpactBadge(article.impact);
-            return (
-              <div key={article.id} className="px-6 py-5 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors cursor-pointer">
+        {loading ? (
+          <div className="px-6 py-6 text-slate-600 dark:text-gray-400">Loading news...</div>
+        ) : error ? (
+          <div className="px-6 py-6 text-rose-600 dark:text-rose-400">{error}</div>
+        ) : (
+          <div className="divide-y divide-slate-200 dark:divide-gray-700">
+            {newsArticles.map((article) => (
+              <a
+                key={article.id}
+                href={article.url}
+                target="_blank"
+                rel="noreferrer"
+                className="block px-6 py-5 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors"
+              >
                 <div className="flex items-start gap-4">
-                  <div className="text-3xl flex-shrink-0">{article.image}</div>
+                  {article.image ? (
+                    <img
+                      src={article.image}
+                      alt={article.headline}
+                      className="w-20 h-20 rounded-lg object-cover shrink-0"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 rounded-lg bg-slate-200 dark:bg-gray-700 shrink-0" />
+                  )}
+
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="px-2 py-1 bg-[#2ebd85] rounded text-xs font-semibold text-white">
-                        {article.category}
-                      </span>
-                      <span className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold ${badge.classes}`}>
-                        {badge.icon}
-                        {article.impact}
+                      <span className="px-2 py-1 bg-[#2ebd85] rounded text-xs font-semibold text-white capitalize">
+                        {article.category || 'general'}
                       </span>
                     </div>
+
                     <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2 hover:text-[#2ebd85] transition-colors">
                       {article.headline}
                     </h3>
+
+                    <p className="text-sm text-slate-600 dark:text-gray-400 mb-2 line-clamp-2">
+                      {article.summary}
+                    </p>
+
                     <div className="flex items-center justify-between">
                       <span className="text-slate-600 dark:text-gray-400 text-sm font-medium">{article.source}</span>
-                      <span className="text-slate-600 dark:text-gray-400 text-xs">{article.date}</span>
+                      <span className="text-slate-600 dark:text-gray-400 text-xs">{formatDate(article.datetime)}</span>
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              </a>
+            ))}
+
+            {!newsArticles.length && (
+              <div className="px-6 py-6 text-slate-600 dark:text-gray-400">No news available.</div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

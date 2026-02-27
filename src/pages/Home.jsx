@@ -1,5 +1,5 @@
 import { Activity, BarChart3, Brain } from 'lucide-react';
-import TradingViewWidget from '../components/StockWdgets';
+import AnalystChart from '../components/AnalystChart';
 import StockHeatmap from '../components/StockHeatmap';
 import StocksTable from '../components/StocksTable';
 import { useEffect, useState } from 'react';
@@ -8,6 +8,17 @@ import api from '../services/api';
 
 export default function Home() {
   const [marketStatus,setMarketStatus]=useState("Loading...");
+  const recommendationData = [
+    {
+      buy: 24,
+      hold: 7,
+      period: '2025-03-01',
+      sell: 0,
+      strongBuy: 13,
+      strongSell: 0,
+      symbol: 'AAPL',
+    },
+  ];
 
   useEffect(()=>{
   const fetchMarketStatus = async () => {
@@ -55,10 +66,10 @@ export default function Home() {
               ))}
             </div>
 
-            {/* TradingView Widget – spans 1 cols */}
+            {/* Analyst Recommendation Trends */}
             <div className="md:col-span-1 p-0.5">
-              <div className="bg-slate-50 dark:bg-gray-900 p-1 rounded-lg h-full min-h-80">
-                <TradingViewWidget />
+              <div className="w-full h-full min-h-80">
+                <AnalystChart recommendationData={recommendationData} />
               </div>
             </div>
 

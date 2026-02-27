@@ -1,32 +1,19 @@
-import { X, TrendingUp, TrendingDown, Brain, Star, BarChart2, AlertTriangle, Minus } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { X, TrendingUp, TrendingDown, Brain, BarChart2, AlertTriangle, RefreshCw } from 'lucide-react';
+import api from '../services/api';
 
-const marketIndices = [
-  { name: 'S&P 500',  value: '5,187.52', change: +0.62 },
-  { name: 'NASDAQ',   value: '16,302.76', change: +0.94 },
-  { name: 'DOW JONES',value: '39,127.14', change: +0.27 },
-  { name: 'VIX',      value: '14.23',     change: -3.10 },
+const MARKET_INDEX_CONFIG = [
+  { name: 'S&P 500', symbol: 'SPY' },
+  { name: 'NASDAQ', symbol: 'QQQ' },
+  { name: 'DOW JONES', symbol: 'DIA' },
+  { name: 'VIX', symbol: '^VIX' },
 ];
 
-const topPerformers = [
-  { symbol: 'NVDA', name: 'NVIDIA Corp.',   change: +4.21 },
-  { symbol: 'META', name: 'Meta Platforms', change: +3.85 },
-  { symbol: 'AMZN', name: 'Amazon.com',     change: +2.97 },
-  { symbol: 'AAPL', name: 'Apple Inc.',     change: -1.44 },
-];
-
-const watchlist = [
-  { symbol: 'TSLA', price: '242.84', change: -1.68 },
-  { symbol: 'GOOGL', price: '141.80', change: -0.84 },
-  { symbol: 'MSFT',  price: '378.91', change: +1.52 },
-  { symbol: 'AMD',   price: '172.46', change: +2.15 },
-];
-
-const sentiments = [
-  { sector: 'Technology',  sentiment: 'Bullish',  score: 82 },
-  { sector: 'Energy',      sentiment: 'Neutral',  score: 51 },
-  { sector: 'Healthcare',  sentiment: 'Bullish',  score: 68 },
-  { sector: 'Financials',  sentiment: 'Bearish',  score: 34 },
-  { sector: 'Real Estate', sentiment: 'Bearish',  score: 29 },
+const SENTIMENT_SECTOR_CONFIG = [
+  { sector: 'Technology', endpoint: 'technology' },
+  { sector: 'Energy', endpoint: 'energy' },
+  { sector: 'Healthcare', endpoint: 'healthcare' },
+  { sector: 'Financial', endpoint: 'financial' },
 ];
 
 const aiAlerts = [
@@ -61,6 +48,112 @@ function ChangeChip({ change }) {
 }
 
 export default function AIInsightsSidebar({ open, onClose }) {
+  const [marketIndices, setMarketIndices] = useState(
+    MARKET_INDEX_CONFIG.map((item) => ({ ...item, value: '--', change: 0 }))
+  );
+  const [sentiments, setSentiments] = useState(
+    SENTIMENT_SECTOR_CONFIG.map((item) => ({ ...item, sentiment: 'Neutral', score: 0 }))
+  );
+  const [sentimentRefreshing, setSentimentRefreshing] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+
+    let isMounted = true;
+
+    const fetchMarketOverview = async () => {
+      const settled = await Promise.allSettled(
+        MARKET_INDEX_CONFIG.map(async (item) => {
+          const { data } = await api.get(`/stocks/quote/${encodeURIComponent(item.symbol)}`);
+          return {
+            ...item,
+            value: Number(data.price || 0).toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }),
+            change: Number(data.changePercent || 0),
+          };
+        })
+      );
+
+      if (!isMounted) return;
+
+      const next = settled.map((result, index) => {
+        if (result.status === 'fulfilled') return result.value;
+        return {
+          ...MARKET_INDEX_CONFIG[index],
+          value: '--',
+          change: 0,
+        };
+      });
+
+      setMarketIndices(next);
+    };
+
+    fetchMarketOverview();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [open]);
+
+  const normalizeSentiment = (payload) => {
+    const safeRows = Array.isArray(payload)
+      ? (Array.isArray(payload[0]) ? payload[0] : payload)
+      : [];
+    const sorted = [...safeRows].sort((first, second) => Number(second.score || 0) - Number(first.score || 0));
+    const top = sorted[0];
+
+    if (!top) {
+      return { sentiment: 'Neutral', score: 0 };
+    }
+
+    const normalizedLabel = String(top.label || '').toLowerCase();
+    const sentimentMap = {
+      positive: 'Bullish',
+      neutral: 'Neutral',
+      negative: 'Bearish',
+    };
+
+    return {
+      sentiment: sentimentMap[normalizedLabel] || 'Neutral',
+      score: Math.round(Number(top.score || 0) * 100),
+    };
+  };
+
+  const fetchSectorSentiments = async () => {
+    setSentimentRefreshing(true);
+
+    const settled = await Promise.allSettled(
+      SENTIMENT_SECTOR_CONFIG.map(async (item) => {
+        const { data } = await api.get(`/insights/${item.endpoint}`);
+        const normalized = normalizeSentiment(data);
+        return {
+          sector: item.sector,
+          endpoint: item.endpoint,
+          sentiment: normalized.sentiment,
+          score: normalized.score,
+        };
+      })
+    );
+
+    const nextSentiments = settled.map((result, index) => {
+      if (result.status === 'fulfilled') return result.value;
+      return {
+        ...SENTIMENT_SECTOR_CONFIG[index],
+        sentiment: 'Neutral',
+        score: 0,
+      };
+    });
+
+    setSentiments(nextSentiments);
+    setSentimentRefreshing(false);
+  };
+
+  const handleSentimentRefresh = async () => {
+    await fetchSectorSentiments();
+  };
+
   return (
     <>
       {/* Backdrop */}
@@ -78,7 +171,7 @@ export default function AIInsightsSidebar({ open, onClose }) {
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 flex-shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 shrink-0">
           <div className="flex items-center gap-2">
             <Brain className="w-5 h-5 text-[#2ebd85]" />
             <h2 className="text-base font-bold text-slate-900 dark:text-white">AI Insights</h2>
@@ -115,53 +208,24 @@ export default function AIInsightsSidebar({ open, onClose }) {
             </div>
           </section>
 
-          {/* ── Top Performers ── */}
-          <section>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-gray-400 mb-2 flex items-center gap-1.5">
-              <TrendingUp className="w-3.5 h-3.5" /> Top Performers
-            </h3>
-            <div className="space-y-1.5">
-              {topPerformers.map((s) => (
-                <div
-                  key={s.symbol}
-                  className="flex items-center justify-between bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-lg px-3 py-2"
-                >
-                  <div>
-                    <p className="text-xs font-bold text-slate-900 dark:text-white">{s.symbol}</p>
-                    <p className="text-xs text-slate-500 dark:text-gray-400">{s.name}</p>
-                  </div>
-                  <ChangeChip change={s.change} />
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* ── Watchlist ── */}
-          <section>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-gray-400 mb-2 flex items-center gap-1.5">
-              <Star className="w-3.5 h-3.5" /> Watchlist
-            </h3>
-            <div className="space-y-1.5">
-              {watchlist.map((s) => (
-                <div
-                  key={s.symbol}
-                  className="flex items-center justify-between bg-slate-50 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-lg px-3 py-2"
-                >
-                  <p className="text-xs font-bold text-slate-900 dark:text-white">{s.symbol}</p>
-                  <div className="text-right">
-                    <p className="text-xs font-semibold text-slate-900 dark:text-white">${s.price}</p>
-                    <ChangeChip change={s.change} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
           {/* ── AI Sentiment Analysis ── */}
           <section>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-gray-400 mb-2 flex items-center gap-1.5">
-              <Brain className="w-3.5 h-3.5" /> AI Sentiment Analysis
-            </h3>
+            <div className="mb-2 flex items-center justify-between">
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-gray-400 flex items-center gap-1.5">
+                  <Brain className="w-3.5 h-3.5" /> AI Sentiment Analysis
+                </h3>
+                <p className="text-[11px] text-slate-500 dark:text-gray-400 mt-0.5">May take a few seconds to load</p>
+              </div>
+              <button
+                type="button"
+                onClick={handleSentimentRefresh}
+                className="p-1 rounded transition-colors text-slate-500 dark:text-gray-400 hover:text-[#2ebd85] hover:bg-slate-200 dark:hover:bg-gray-700"
+                title="Refresh sentiment"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${sentimentRefreshing ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
             <div className="space-y-2">
               {sentiments.map((s) => {
                 const labelColor =
@@ -205,7 +269,7 @@ export default function AIInsightsSidebar({ open, onClose }) {
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-3 border-t border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 flex-shrink-0">
+        <div className="px-4 py-3 border-t border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 shrink-0">
           <p className="text-xs text-slate-500 dark:text-gray-400 text-center">
             AI insights are for informational purposes only and do not constitute financial advice.
           </p>

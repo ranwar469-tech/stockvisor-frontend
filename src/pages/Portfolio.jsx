@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { TrendingUp, TrendingDown, Plus, X, RefreshCw, Search } from 'lucide-react';
 import api from '../services/api';
+import AreaChartPortfolio from '../components/AreaChartPortfolio';
 
 export default function Portfolio() {
   const { isAuthenticated } = useAuth();
@@ -11,6 +12,7 @@ export default function Portfolio() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [addError, setAddError] = useState('');
+  const [addSuccess, setAddSuccess] = useState('');
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [newStock, setNewStock] = useState({ symbol: '', quantity: '', purchasePrice: '' });
@@ -90,6 +92,12 @@ export default function Portfolio() {
     fetchHoldings();
   }, [fetchHoldings]);
 
+  useEffect(() => {
+    if (!addSuccess) return;
+    const timer = setTimeout(() => setAddSuccess(''), 2200);
+    return () => clearTimeout(timer);
+  }, [addSuccess]);
+
   const calculateMetrics = (holding) => {
     const totalInvested = holding.quantity * holding.purchasePrice;
     const currentValue = holding.quantity * holding.currentPrice;
@@ -136,8 +144,25 @@ export default function Portfolio() {
         quantity: parseFloat(newStock.quantity),
         purchase_price: parseFloat(newStock.purchasePrice),
       });
-      setHoldings([...holdings, data]);
+      let actionLabel = 'added';
+      setHoldings((prevHoldings) => {
+        const existingIndex = prevHoldings.findIndex(
+          (holding) =>
+            holding.id === data.id ||
+            holding.symbol?.toUpperCase() === data.symbol?.toUpperCase()
+        );
+
+        if (existingIndex === -1) {
+          return [...prevHoldings, data];
+        }
+
+        actionLabel = 'updated';
+        const nextHoldings = [...prevHoldings];
+        nextHoldings[existingIndex] = data;
+        return nextHoldings;
+      });
       resetModal();
+      setAddSuccess(`Holding ${actionLabel} successfully`);
     } catch (err) {
       const msg = err.response?.data?.detail || 'Failed to add stock.';
       setAddError(typeof msg === 'string' ? msg : 'Failed to add stock.');
@@ -167,35 +192,49 @@ export default function Portfolio() {
         </div>
       )}
 
+      {addSuccess && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center pointer-events-none">
+          <div className="px-5 py-3 rounded-xl bg-[#2ebd85] text-white font-semibold shadow-lg">
+            {addSuccess}
+          </div>
+        </div>
+      )}
+
       {isAuthenticated && (
         <>
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-[#2ebd85] hover:shadow-md transition-shadow">
-              <p className="text-sm text-slate-600 dark:text-gray-400 mb-1">Total Invested</p>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white">${totalMetrics.totalInvested.toFixed(2)}</p>
-            </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-[#2ebd85] hover:shadow-md transition-shadow">
-              <p className="text-sm text-slate-600 dark:text-gray-400 mb-1">Current Value</p>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white">${totalMetrics.currentValue.toFixed(2)}</p>
-            </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-[#2ebd85] hover:shadow-md transition-shadow">
-              <p className="text-sm text-slate-600 dark:text-gray-400 mb-1">Total Profit/Loss</p>
-              <div className="flex items-center space-x-2">
-                {portfolioProfit >= 0 ? (
-                  <>
-                    <TrendingUp className="w-5 h-5 text-[#2ebd85]" />
-                    <p className="text-2xl font-bold text-[#2ebd85]">+${portfolioProfit.toFixed(2)}</p>
-                    <p className="text-sm font-semibold text-[#2ebd85]">({isNaN(portfolioProfitPercent) ? '0.00' : portfolioProfitPercent.toFixed(2)}%)</p>
-                  </>
-                ) : (
-                  <>
-                    <TrendingDown className="w-5 h-5 text-rose-600" />
-                    <p className="text-2xl font-bold text-rose-600">-${Math.abs(portfolioProfit).toFixed(2)}</p>
-                    <p className="text-sm font-semibold text-rose-600">({portfolioProfitPercent.toFixed(2)}%)</p>
-                  </>
-                )}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch" style={{ gridAutoRows: '1fr' }}>
+            {/* Summary Cards - stacked in col 1 */}
+            <div className="flex flex-col gap-4">
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-[#2ebd85] hover:shadow-md transition-shadow">
+                <p className="text-sm text-slate-600 dark:text-gray-400 mb-1">Total Invested</p>
+                <p className="text-2xl font-bold text-slate-900 dark:text-white">${totalMetrics.totalInvested.toFixed(2)}</p>
               </div>
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-[#2ebd85] hover:shadow-md transition-shadow">
+                <p className="text-sm text-slate-600 dark:text-gray-400 mb-1">Current Value</p>
+                <p className="text-2xl font-bold text-slate-900 dark:text-white">${totalMetrics.currentValue.toFixed(2)}</p>
+              </div>
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-[#2ebd85] hover:shadow-md transition-shadow">
+                <p className="text-sm text-slate-600 dark:text-gray-400 mb-1">Total Profit/Loss</p>
+                <div className="flex items-center space-x-2">
+                  {portfolioProfit >= 0 ? (
+                    <>
+                      <TrendingUp className="w-5 h-5 text-[#2ebd85]" />
+                      <p className="text-2xl font-bold text-[#2ebd85]">+${portfolioProfit.toFixed(2)}</p>
+                      <p className="text-sm font-semibold text-[#2ebd85]">({isNaN(portfolioProfitPercent) ? '0.00' : portfolioProfitPercent.toFixed(2)}%)</p>
+                    </>
+                  ) : (
+                    <>
+                      <TrendingDown className="w-5 h-5 text-rose-600" />
+                      <p className="text-2xl font-bold text-rose-600">-${Math.abs(portfolioProfit).toFixed(2)}</p>
+                      <p className="text-sm font-semibold text-rose-600">({portfolioProfitPercent.toFixed(2)}%)</p>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="md:col-span-1 p-0.5">
+              <AreaChartPortfolio holdings={holdings} />
             </div>
           </div>
 

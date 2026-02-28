@@ -4,6 +4,7 @@ import Home from "./pages/Home";
 import About from "./pages/About";
 import Portfolio from "./pages/Portfolio";
 import Community from "./pages/Community";
+import DiscussionThread from "./pages/DiscussionThread";
 import News from "./pages/News";
 import Tips from "./pages/Tips";
 import AccountSettings from "./pages/AccountSettings";
@@ -27,6 +28,7 @@ function App() {
         <Route path="about" element={<About />} />
         <Route path="portfolio" element={<Portfolio />} />
         <Route path="community" element={<Community />} />
+        <Route path="community/threads/:threadId" element={<DiscussionThread />} />
         <Route path="news" element={<News />} />
         <Route path="tips" element={<Tips />} />
         <Route path="settings" element={<AccountSettings />} />

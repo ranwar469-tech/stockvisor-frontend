@@ -16,12 +16,12 @@ const SENTIMENT_SECTOR_CONFIG = [
   { sector: 'Financial', endpoint: 'financial' },
 ];
 
-const aiAlerts = [
-  { text: 'NVDA breakout above 20-day MA — momentum building.', type: 'positive' },
-  { text: 'Elevated volatility expected around Fed meeting on Mar 5.', type: 'warning' },
-  { text: 'META showing strong accumulation in after-hours trading.', type: 'positive' },
-  { text: 'TSLA detected downward trend; support at $238 key level.', type: 'negative' },
-];
+const ALERT_KEYS = ['ai_alert_1', 'ai_alert_2', 'ai_alert_3', 'ai_alert_4'];
+
+const DEFAULT_ALERTS = ALERT_KEYS.map(() => ({
+  text: 'Fetching latest alerts...',
+  type: 'positive',
+}));
 
 function SentimentBar({ score, sentiment }) {
   const color =
@@ -55,6 +55,52 @@ export default function AIInsightsSidebar({ open, onClose }) {
     SENTIMENT_SECTOR_CONFIG.map((item) => ({ ...item, sentiment: 'Neutral', score: 0 }))
   );
   const [sentimentRefreshing, setSentimentRefreshing] = useState(false);
+  const [aiAlerts, setAiAlerts] = useState(DEFAULT_ALERTS);
+  const [alertsRefreshing, setAlertsRefreshing] = useState(false);
+
+  const inferAlertType = (text) => {
+    const normalized = String(text || '').toLowerCase();
+    const positiveHints = ['up', 'growth', 'bull', 'rally', 'surge', 'gain', 'strong'];
+    const negativeHints = ['down', 'drop', 'decline', 'bear', 'risk', 'weak', 'selloff'];
+
+    if (positiveHints.some((hint) => normalized.includes(hint))) return 'positive';
+    if (negativeHints.some((hint) => normalized.includes(hint))) return 'negative';
+    return 'warning';
+  };
+
+  const extractAlertText = (value) => {
+    if (typeof value === 'string') return value;
+    if (Array.isArray(value) && value[0] && typeof value[0] === 'object') {
+      return value[0].summary_text || value[0].generated_text || '';
+    }
+    if (value && typeof value === 'object') {
+      return value.summary_text || value.generated_text || '';
+    }
+    return '';
+  };
+
+  const fetchAiAlerts = async () => {
+    setAlertsRefreshing(true);
+    try {
+      const { data } = await api.get('/insights/alerts/');
+      const nextAlerts = ALERT_KEYS.map((key) => {
+        const text = extractAlertText(data?.[key]).trim();
+        return {
+          text: text || 'No alert available right now.',
+          type: inferAlertType(text),
+        };
+      });
+      setAiAlerts(nextAlerts);
+    } catch {
+      setAiAlerts(DEFAULT_ALERTS);
+    } finally {
+      setAlertsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAiAlerts();
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -154,6 +200,10 @@ export default function AIInsightsSidebar({ open, onClose }) {
     await fetchSectorSentiments();
   };
 
+  const handleAlertsRefresh = async () => {
+    await fetchAiAlerts();
+  };
+
   return (
     <>
       {/* Backdrop */}
@@ -247,9 +297,19 @@ export default function AIInsightsSidebar({ open, onClose }) {
 
           {/* ── AI Alerts ── */}
           <section>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-gray-400 mb-2 flex items-center gap-1.5">
-              <AlertTriangle className="w-3.5 h-3.5" /> AI Alerts
-            </h3>
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-gray-400 flex items-center gap-1.5">
+                <AlertTriangle className="w-3.5 h-3.5" /> AI Alerts
+              </h3>
+              <button
+                type="button"
+                onClick={handleAlertsRefresh}
+                className="p-1 rounded transition-colors text-slate-500 dark:text-gray-400 hover:text-[#2ebd85] hover:bg-slate-200 dark:hover:bg-gray-700"
+                title="Refresh alerts"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${alertsRefreshing ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
             <div className="space-y-2">
               {aiAlerts.map((alert, i) => {
                 const styles = {

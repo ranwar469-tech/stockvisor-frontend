@@ -1,4 +1,4 @@
-import { Activity, BarChart3, Brain } from 'lucide-react';
+import { Activity, BarChart3, Brain, RefreshCw } from 'lucide-react';
 import AnalystChart from '../components/AnalystChart';
 import StockHeatmap from '../components/StockHeatmap';
 import StocksTable from '../components/StocksTable';
@@ -7,7 +7,10 @@ import api from '../services/api';
 
 
 export default function Home() {
-  const [marketStatus,setMarketStatus]=useState("Loading...");
+  const [marketStatus, setMarketStatus] = useState('Loading...');
+  const [marketSentiment, setMarketSentiment] = useState('Bullish 🔥');
+  const [sentimentRefreshing, setSentimentRefreshing] = useState(false);
+
   const recommendationData = [
     {
       buy: 24,
@@ -20,21 +23,70 @@ export default function Home() {
     },
   ];
 
-  useEffect(()=>{
   const fetchMarketStatus = async () => {
     try {
       const response = await api.get('/stocks/status');
-      let statusText = response.data.status[0].toUpperCase()+response.data.status.slice(1);
+      const statusText = response.data.status[0].toUpperCase() + response.data.status.slice(1);
       setMarketStatus(statusText);
     } catch (error) {
       console.error('Failed to fetch market status:', error);
     }
   };
-  fetchMarketStatus();
-}, []);
+
+  const normalizeSentiment = (payload) => {
+    const rows = Array.isArray(payload)
+      ? (Array.isArray(payload[0]) ? payload[0] : payload)
+      : [];
+
+    const sorted = [...rows].sort((first, second) => Number(second.score || 0) - Number(first.score || 0));
+    const top = sorted[0];
+
+    if (!top) return 'neutral';
+
+    const label = String(top.label || '').toLowerCase();
+    if (label === 'positive') return 'bullish';
+    if (label === 'negative') return 'bearish';
+    return 'neutral';
+  };
+
+  const fetchMarketSentiment = async () => {
+    setSentimentRefreshing(true);
+    try {
+      const [techResponse, energyResponse] = await Promise.all([
+        api.get('/insights/technology'),
+        api.get('/insights/energy'),
+      ]);
+
+      const techSentiment = normalizeSentiment(techResponse.data);
+      const energySentiment = normalizeSentiment(energyResponse.data);
+
+      if (techSentiment === 'bullish' && energySentiment === 'bullish') {
+        setMarketSentiment('Bullish 🔥');
+      } else if (techSentiment === 'bearish' && energySentiment === 'bearish') {
+        setMarketSentiment('Bearish ❄️');
+      } else {
+        setMarketSentiment('Neutral ⚠️');
+      }
+    } catch (error) {
+      console.error('Failed to fetch market sentiment:', error);
+    } finally {
+      setSentimentRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMarketStatus();
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchMarketStatus();
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   const marketStats = [
-    { label: 'Market Sentiment', value: 'Bullish 🔥', icon: Brain },
+    { label: 'AI Market Sentiment', value: marketSentiment, icon: Brain },
     { label: 'US Market Status', value: marketStatus, icon: Activity },
     { label: 'Active Stocks', value: '6,247', icon: BarChart3 },
   ];
@@ -55,7 +107,19 @@ export default function Home() {
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-slate-600 dark:text-gray-400 mb-1">{stat.label}</p>
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="text-sm text-slate-600 dark:text-gray-400">{stat.label}</p>
+                        {stat.label === 'AI Market Sentiment' && (
+                          <button
+                            type="button"
+                            onClick={fetchMarketSentiment}
+                            className="p-0.5 rounded transition-colors text-slate-500 dark:text-gray-400 hover:text-[#2ebd85] hover:bg-slate-200 dark:hover:bg-gray-700"
+                            title="Refresh market sentiment"
+                          >
+                            <RefreshCw className={`w-3.5 h-3.5 ${sentimentRefreshing ? 'animate-spin' : ''}`} />
+                          </button>
+                        )}
+                      </div>
                       <p className="text-xl font-bold text-slate-900 dark:text-white">{stat.value}</p>
                     </div>
                     <div className="bg-[#edfaf4] dark:bg-gray-700 p-3 rounded-lg">
@@ -75,7 +139,7 @@ export default function Home() {
 
             {/* Heatmap Widget – spans 1 col, same height as siblings */}
             <div className="md:col-span-1 p-0.5">
-              <div className="relative overflow-hidden rounded-lg h-full min-h-80 max-h-[28rem]">
+              <div className="relative overflow-hidden rounded-lg h-full min-h-80 max-h-112">
                 <StockHeatmap />
               </div>
             </div>

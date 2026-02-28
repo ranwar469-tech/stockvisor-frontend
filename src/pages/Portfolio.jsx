@@ -6,6 +6,8 @@ import api from '../services/api';
 import AreaChartPortfolio from '../components/AreaChartPortfolio';
 
 export default function Portfolio() {
+  const SELL_STOCK_ENDPOINT = '/portfolio/sell';
+
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [holdings, setHoldings] = useState([]);
@@ -18,12 +20,23 @@ export default function Portfolio() {
   const [newStock, setNewStock] = useState({ symbol: '', quantity: '', purchasePrice: '' });
   const [addLoading, setAddLoading] = useState(false);
 
+  const [showSellModal, setShowSellModal] = useState(false);
+  const [sellStock, setSellStock] = useState({ symbol: '', quantity: '' });
+  const [sellLoading, setSellLoading] = useState(false);
+  const [sellError, setSellError] = useState('');
+
   // Symbol search / autocomplete state
   const [symbolQuery, setSymbolQuery] = useState('');
   const [symbolResults, setSymbolResults] = useState([]);
   const [symbolSearchLoading, setSymbolSearchLoading] = useState(false);
   const [showSymbolDropdown, setShowSymbolDropdown] = useState(false);
   const symbolRef = useRef(null);
+
+  const [sellSymbolQuery, setSellSymbolQuery] = useState('');
+  const [sellSymbolResults, setSellSymbolResults] = useState([]);
+  const [sellSymbolSearchLoading, setSellSymbolSearchLoading] = useState(false);
+  const [showSellSymbolDropdown, setShowSellSymbolDropdown] = useState(false);
+  const sellSymbolRef = useRef(null);
 
   // Debounced search for symbol autocomplete
   useEffect(() => {
@@ -47,11 +60,35 @@ export default function Portfolio() {
     return () => clearTimeout(timer);
   }, [symbolQuery]);
 
+  useEffect(() => {
+    if (!sellSymbolQuery.trim()) {
+      setSellSymbolResults([]);
+      setShowSellSymbolDropdown(false);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setSellSymbolSearchLoading(true);
+      try {
+        const { data } = await api.get('/stocks/search', { params: { q: sellSymbolQuery.trim() } });
+        setSellSymbolResults(data);
+      } catch {
+        setSellSymbolResults([]);
+      } finally {
+        setSellSymbolSearchLoading(false);
+        setShowSellSymbolDropdown(true);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [sellSymbolQuery]);
+
   // Close symbol dropdown on outside click
   useEffect(() => {
     const handleClick = (e) => {
       if (symbolRef.current && !symbolRef.current.contains(e.target)) {
         setShowSymbolDropdown(false);
+      }
+      if (sellSymbolRef.current && !sellSymbolRef.current.contains(e.target)) {
+        setShowSellSymbolDropdown(false);
       }
     };
     document.addEventListener('mousedown', handleClick);
@@ -64,6 +101,12 @@ export default function Portfolio() {
     setShowSymbolDropdown(false);
   };
 
+  const selectSellSymbol = (symbol, name) => {
+    setSellStock((prev) => ({ ...prev, symbol }));
+    setSellSymbolQuery(name ? `${symbol} — ${name}` : symbol);
+    setShowSellSymbolDropdown(false);
+  };
+
   const resetModal = () => {
     setShowAddModal(false);
     setAddError('');
@@ -71,6 +114,15 @@ export default function Portfolio() {
     setSymbolResults([]);
     setShowSymbolDropdown(false);
     setNewStock({ symbol: '', quantity: '', purchasePrice: '' });
+  };
+
+  const resetSellModal = () => {
+    setShowSellModal(false);
+    setSellError('');
+    setSellSymbolQuery('');
+    setSellSymbolResults([]);
+    setShowSellSymbolDropdown(false);
+    setSellStock({ symbol: '', quantity: '' });
   };
 
   const fetchHoldings = useCallback(async () => {
@@ -171,6 +223,49 @@ export default function Portfolio() {
     }
   };
 
+  const handleSellStock = async () => {
+    if (!sellStock.symbol || !sellStock.quantity) return;
+    setSellLoading(true);
+    setSellError('');
+    try {
+      const { data } = await api.post(SELL_STOCK_ENDPOINT, {
+        symbol: sellStock.symbol.toUpperCase(),
+        quantity: parseFloat(sellStock.quantity),
+      });
+
+      let actionLabel = 'sold';
+      setHoldings((prevHoldings) => {
+        const existingIndex = prevHoldings.findIndex(
+          (holding) =>
+            holding.id === data.id ||
+            holding.symbol?.toUpperCase() === data.symbol?.toUpperCase()
+        );
+
+        if (Number(data.quantity) <= 0) {
+          if (existingIndex === -1) return prevHoldings;
+          return prevHoldings.filter((holding) => holding.id !== prevHoldings[existingIndex].id);
+        }
+
+        if (existingIndex === -1) {
+          return [...prevHoldings, data];
+        }
+
+        actionLabel = 'updated';
+        const nextHoldings = [...prevHoldings];
+        nextHoldings[existingIndex] = data;
+        return nextHoldings;
+      });
+
+      resetSellModal();
+      setAddSuccess(`Holding ${actionLabel} successfully`);
+    } catch (err) {
+      const msg = err.response?.data?.detail || 'Failed to sell stock.';
+      setSellError(typeof msg === 'string' ? msg : 'Failed to sell stock.');
+    } finally {
+      setSellLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Page Header */}
@@ -250,6 +345,13 @@ export default function Portfolio() {
               title="Refresh portfolio"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+            <button
+              onClick={() => setShowSellModal(true)}
+              className="bg-rose-600 hover:bg-rose-700 dark:bg-rose-700 dark:hover:bg-rose-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+            >
+              <TrendingDown className="w-4 h-4" />
+              <span>Sell Stock</span>
             </button>
             <button
               onClick={() => setShowAddModal(true)}
@@ -487,6 +589,109 @@ export default function Portfolio() {
                   className="flex-1 px-4 py-2 bg-[#2ebd85] hover:bg-[#26a070] disabled:opacity-60 text-white rounded-lg transition-colors flex items-center justify-center"
                 >
                   {addLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'Add'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sell Stock Modal */}
+      {showSellModal && (
+        <div className="fixed inset-0 bg-transparent bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200 dark:border-gray-700">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">Sell Stock from Portfolio</h3>
+              <button
+                onClick={resetSellModal}
+                className="p-1 rounded transition-colors hover:bg-slate-100 dark:hover:bg-gray-700"
+              >
+                <X className="w-5 h-5 text-slate-600 dark:text-gray-400" />
+              </button>
+            </div>
+
+            {sellError && (
+              <div className="mb-4 px-4 py-3 rounded-lg bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-sm">
+                {sellError}
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div ref={sellSymbolRef} className="relative">
+                <label className="block text-sm font-medium text-slate-600 dark:text-gray-400 mb-2">Stock Symbol</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-gray-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="Search for a stock…"
+                    value={sellSymbolQuery}
+                    onChange={(e) => {
+                      setSellSymbolQuery(e.target.value);
+                      setSellStock((prev) => ({ ...prev, symbol: '' }));
+                    }}
+                    onFocus={() => { if (sellSymbolResults.length) setShowSellSymbolDropdown(true); }}
+                    className="w-full pl-9 pr-4 py-2 border rounded-lg bg-white dark:bg-gray-700 border-slate-300 dark:border-gray-600 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2ebd85] text-sm"
+                    autoComplete="off"
+                  />
+                </div>
+
+                {showSellSymbolDropdown && (
+                  <div className="absolute top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto rounded-lg border border-[#2ebd85] bg-white dark:bg-gray-800 shadow-lg z-50">
+                    {sellSymbolSearchLoading ? (
+                      <div className="flex items-center justify-center py-3 text-sm text-slate-500 dark:text-gray-400">
+                        <RefreshCw className="w-4 h-4 animate-spin mr-2" /> Searching…
+                      </div>
+                    ) : sellSymbolResults.length === 0 ? (
+                      <div className="py-3 px-4 text-center text-sm text-rose-500">No results found</div>
+                    ) : (
+                      sellSymbolResults.map((item) => (
+                        <button
+                          key={item.symbol}
+                          type="button"
+                          onClick={() => selectSellSymbol(item.symbol, item.name)}
+                          className="w-full text-left px-4 py-2.5 flex items-center gap-3 hover:bg-[#edfaf4] dark:hover:bg-gray-700 transition-colors"
+                        >
+                          <span className="font-bold text-sm text-slate-900 dark:text-white">{item.symbol}</span>
+                          <span className="text-xs text-slate-500 dark:text-gray-400 truncate">{item.name}</span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+
+                {sellStock.symbol && (
+                  <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#edfaf4] dark:bg-[#114832]/30 border border-[#2ebd85] text-sm font-semibold text-[#2ebd85]">
+                    {sellStock.symbol}
+                    <button type="button" onClick={() => { setSellStock((prev) => ({ ...prev, symbol: '' })); setSellSymbolQuery(''); }} className="hover:text-rose-500 transition-colors">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-600 dark:text-gray-400 mb-2">Quantity</label>
+                <input
+                  type="number"
+                  placeholder="Number of shares"
+                  value={sellStock.quantity}
+                  onChange={(e) => setSellStock({ ...sellStock, quantity: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 border-slate-300 dark:border-gray-600 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2ebd85]"
+                  min="1"
+                />
+              </div>
+              <div className="flex space-x-3 pt-4">
+                <button
+                  onClick={resetSellModal}
+                  className="flex-1 px-4 py-2 rounded-lg transition-colors bg-slate-200 dark:bg-gray-700 text-slate-900 dark:text-white hover:bg-slate-300 dark:hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSellStock}
+                  disabled={sellLoading}
+                  className="flex-1 px-4 py-2 bg-rose-600 hover:bg-rose-700 disabled:opacity-60 text-white rounded-lg transition-colors flex items-center justify-center"
+                >
+                  {sellLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'Sell'}
                 </button>
               </div>
             </div>

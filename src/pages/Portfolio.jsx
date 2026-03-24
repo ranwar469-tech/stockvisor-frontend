@@ -1,9 +1,25 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { TrendingUp, TrendingDown, Plus, X, RefreshCw, Search } from 'lucide-react';
+import { TrendingUp, TrendingDown, Plus, X, RefreshCw, Search, Info } from 'lucide-react';
 import api from '../services/api';
 import AreaChartPortfolio from '../components/AreaChartPortfolio';
+import PortfolioRadarChart from '../components/PortfolioRadarChart';
+import TutorialPopup from '../components/TutorialPopup';
+
+function TutorialInfoButton({ label, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:border-[#2ebd85] hover:text-[#2ebd85] dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-[#2ebd85] dark:hover:text-[#4cc99b]"
+      title={`Open tutorial for ${label}`}
+      aria-label={`Open tutorial for ${label}`}
+    >
+      <Info className="h-3.5 w-3.5" />
+    </button>
+  );
+}
 
 export default function Portfolio() {
   const SELL_STOCK_ENDPOINT = '/portfolio/sell';
@@ -15,6 +31,7 @@ export default function Portfolio() {
   const [error, setError] = useState(null);
   const [addError, setAddError] = useState('');
   const [addSuccess, setAddSuccess] = useState('');
+  const [activeTutorialKey, setActiveTutorialKey] = useState(null);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [newStock, setNewStock] = useState({ symbol: '', quantity: '', purchasePrice: '' });
@@ -95,6 +112,14 @@ export default function Portfolio() {
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
+  const openTutorial = (tutorialKey) => {
+    setActiveTutorialKey(tutorialKey);
+  };
+
+  const closeTutorial = () => {
+    setActiveTutorialKey(null);
+  };
+
   const selectSymbol = (symbol, name) => {
     setNewStock((prev) => ({ ...prev, symbol }));
     setSymbolQuery(name ? `${symbol} — ${name}` : symbol);
@@ -131,7 +156,12 @@ export default function Portfolio() {
     setError(null);
     try {
       const { data } = await api.get('/portfolio/');
-      setHoldings(data);
+      const sorted = [...data].sort((a, b) => {
+        const tA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const tB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return tA - tB;
+      });
+      setHoldings(sorted);
     } catch (err) {
       console.error('Failed to fetch holdings:', err);
       setError('Failed to load portfolio. Please try again.');
@@ -297,30 +327,30 @@ export default function Portfolio() {
 
       {isAuthenticated && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch" style={{ gridAutoRows: '1fr' }}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 items-stretch" style={{ gridAutoRows: '1fr' }}>
             {/* Summary Cards - stacked in col 1 */}
-            <div className="flex flex-col gap-4">
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-[#2ebd85] hover:shadow-md transition-shadow">
+            <div className="flex flex-col gap-2">
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm border border-[#2ebd85] hover:shadow-md transition-shadow">
                 <p className="text-sm text-slate-600 dark:text-gray-400 mb-1">Total Invested</p>
-                <p className="text-2xl font-bold text-slate-900 dark:text-white">${totalMetrics.totalInvested.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-slate-900 dark:text-white">${parseFloat(totalMetrics.totalInvested).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
               </div>
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-[#2ebd85] hover:shadow-md transition-shadow">
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm border border-[#2ebd85] hover:shadow-md transition-shadow">
                 <p className="text-sm text-slate-600 dark:text-gray-400 mb-1">Current Value</p>
-                <p className="text-2xl font-bold text-slate-900 dark:text-white">${totalMetrics.currentValue.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-slate-900 dark:text-white">${parseFloat(totalMetrics.currentValue).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
               </div>
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-[#2ebd85] hover:shadow-md transition-shadow">
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm border border-[#2ebd85] hover:shadow-md transition-shadow flex-1">
                 <p className="text-sm text-slate-600 dark:text-gray-400 mb-1">Total Profit/Loss</p>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-baseline space-x-1">
                   {portfolioProfit >= 0 ? (
                     <>
+                      <p className="text-2xl font-bold text-[#2ebd85]">+${parseFloat(portfolioProfit).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                       <TrendingUp className="w-5 h-5 text-[#2ebd85]" />
-                      <p className="text-2xl font-bold text-[#2ebd85]">+${portfolioProfit.toFixed(2)}</p>
-                      <p className="text-sm font-semibold text-[#2ebd85]">({isNaN(portfolioProfitPercent) ? '0.00' : portfolioProfitPercent.toFixed(2)}%)</p>
+                      <p className="text-sm font-semibold text-[#2ebd85];">({isNaN(portfolioProfitPercent) ? '0.00' : portfolioProfitPercent.toFixed(2)}%)</p>
                     </>
                   ) : (
                     <>
+                      <p className="text-2xl font-bold text-rose-600">-${parseFloat(Math.abs(portfolioProfit)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                       <TrendingDown className="w-5 h-5 text-rose-600" />
-                      <p className="text-2xl font-bold text-rose-600">-${Math.abs(portfolioProfit).toFixed(2)}</p>
                       <p className="text-sm font-semibold text-rose-600">({portfolioProfitPercent.toFixed(2)}%)</p>
                     </>
                   )}
@@ -328,15 +358,42 @@ export default function Portfolio() {
               </div>
             </div>
 
-            <div className="md:col-span-1 p-0.5">
-              <AreaChartPortfolio holdings={holdings} />
+            <div className="md:col-span-1 p-0">
+              <AreaChartPortfolio
+                holdings={holdings}
+                headerAction={
+                  <TutorialInfoButton
+                    label="portfolio cost versus market value"
+                    onClick={() => openTutorial('areaChartPortfolio')}
+                  />
+                }
+              />
+            </div>
+
+            <div className="md:col-span-1 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-[#2ebd85] p-3 flex flex-col">
+              <div className="mb-1 flex items-center justify-between gap-3">
+                <p className="text-sm font-semibold text-slate-600 dark:text-gray-400">Sector Allocation</p>
+                <TutorialInfoButton
+                  label="sector allocation"
+                  onClick={() => openTutorial('portfolioRadarChart')}
+                />
+              </div>
+              <div className="flex-1 min-h-0">
+                <PortfolioRadarChart holdings={holdings} />
+              </div>
             </div>
           </div>
 
       {/* Holdings Table */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-[#2ebd85] overflow-hidden transition-colors duration-300">
         <div className="px-6 py-4 border-b border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-700 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Holdings</h3>
+          <div className="flex items-center gap-3">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Holdings</h3>
+            <TutorialInfoButton
+              label="holdings table"
+              onClick={() => openTutorial('holdings')}
+            />
+          </div>
           <div className="flex items-center space-x-3">
             <button
               onClick={fetchHoldings}
@@ -414,19 +471,19 @@ export default function Portfolio() {
                       <p className="text-xs text-slate-600 dark:text-gray-400">{holding.name}</p>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <span className="text-slate-900 dark:text-white">{holding.quantity}</span>
+                      <span className="text-slate-900 dark:text-white">{parseFloat(holding.quantity).toLocaleString()}</span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <span className="text-slate-900 dark:text-white">${holding.purchasePrice.toFixed(2)}</span>
+                      <span className="text-slate-900 dark:text-white">${parseFloat(holding.purchasePrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <span className="font-semibold text-slate-900 dark:text-white">${holding.currentPrice.toFixed(2)}</span>
+                      <span className="font-semibold text-slate-900 dark:text-white">${parseFloat(holding.currentPrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <span className="text-slate-900 dark:text-white">${metrics.totalInvested}</span>
+                      <span className="text-slate-900 dark:text-white">${parseFloat(metrics.totalInvested).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <span className="text-slate-900 dark:text-white">${metrics.currentValue}</span>
+                      <span className="text-slate-900 dark:text-white">${parseFloat(metrics.currentValue).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end space-x-1">
@@ -434,14 +491,14 @@ export default function Portfolio() {
                           <>
                             <TrendingUp className="w-4 h-4 text-[#2ebd85]" />
                             <span className="font-semibold text-[#2ebd85]">
-                              +${metrics.totalProfit} ({metrics.totalProfitPercent}%)
+                              +${parseFloat(metrics.totalProfit).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({metrics.totalProfitPercent}%)
                             </span>
                           </>
                         ) : (
                           <>
                             <TrendingDown className="w-4 h-4 text-rose-600" />
                             <span className="font-semibold text-rose-600">
-                              -${Math.abs(totalProfitNum).toFixed(2)} ({metrics.totalProfitPercent}%)
+                              -${parseFloat(Math.abs(totalProfitNum)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({metrics.totalProfitPercent}%)
                             </span>
                           </>
                         )}
@@ -452,12 +509,12 @@ export default function Portfolio() {
                         {dailyProfitNum >= 0 ? (
                           <>
                             <TrendingUp className="w-4 h-4 text-[#2ebd85]" />
-                            <span className="text-sm font-semibold text-[#2ebd85]">+${metrics.dailyProfit}</span>
+                            <span className="text-sm font-semibold text-[#2ebd85]">+${parseFloat(metrics.dailyProfit).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                           </>
                         ) : (
                           <>
                             <TrendingDown className="w-4 h-4 text-rose-600" />
-                            <span className="text-sm font-semibold text-rose-600">-${Math.abs(dailyProfitNum).toFixed(2)}</span>
+                            <span className="text-sm font-semibold text-rose-600">-${parseFloat(Math.abs(dailyProfitNum)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                           </>
                         )}
                       </div>
@@ -700,6 +757,12 @@ export default function Portfolio() {
       )}
         </>
       )}
+
+      <TutorialPopup
+        isOpen={Boolean(activeTutorialKey)}
+        tutorialKey={activeTutorialKey}
+        onClose={closeTutorial}
+      />
     </div>
   );
 }

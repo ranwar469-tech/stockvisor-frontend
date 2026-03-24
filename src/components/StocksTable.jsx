@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { TrendingUp, TrendingDown, Star, RefreshCw, Search, X } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -12,8 +13,9 @@ function formatVolume(vol) {
   return String(vol);
 }
 
-export default function StocksTable() {
+export default function StocksTable({ headerAction = null }) {
   const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [stocks, setStocks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -25,10 +27,12 @@ export default function StocksTable() {
   const [hasSearched, setHasSearched] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showAddedToast, setShowAddedToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('Added to favorites');
   const toastTimerRef = useRef(null);
   const searchRef = useRef(null);
 
-  const triggerAddedToast = useCallback(() => {
+  const triggerAddedToast = useCallback((message = 'Added to favorites') => {
+    setToastMessage(message);
     setShowAddedToast(true);
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     toastTimerRef.current = setTimeout(() => {
@@ -98,14 +102,16 @@ export default function StocksTable() {
   const addFromSearch = async (symbol) => {
     setShowDropdown(false);
     setSearchQuery('');
+    if (!isAuthenticated) {
+      triggerAddedToast('Log in to add to favorites');
+      return;
+    }
     // Already in the stocks list?
     const existing = stocks.find(s => s.symbol === symbol);
     if (existing) {
       if (!favorites.includes(symbol)) {
         setFavorites(prev => [...prev, symbol]);
-        if (isAuthenticated) {
-          try { await api.post('/watchlist/', { symbol }); } catch { /* ignore dupes */ }
-        }
+        try { await api.post('/watchlist/', { symbol }); } catch { /* ignore dupes */ }
         triggerAddedToast();
       }
       return;
@@ -115,9 +121,7 @@ export default function StocksTable() {
       const { data } = await api.get(`/stocks/quote/${symbol}`);
       setStocks(prev => [...prev, data]);
       setFavorites(prev => [...prev, symbol]);
-      if (isAuthenticated) {
-        try { await api.post('/watchlist/', { symbol }); } catch { /* ignore dupes */ }
-      }
+      try { await api.post('/watchlist/', { symbol }); } catch { /* ignore dupes */ }
       triggerAddedToast();
     } catch (err) {
       console.error('Failed to fetch quote for', symbol, err);
@@ -239,6 +243,8 @@ export default function StocksTable() {
           )}
         </div>
 
+        {headerAction && <div className="shrink-0">{headerAction}</div>}
+
         <button
           onClick={fetchStocks}
           disabled={loading}
@@ -260,6 +266,17 @@ export default function StocksTable() {
           <p>{error}</p>
           <button onClick={fetchStocks} className="mt-3 text-sm text-[#2ebd85] hover:underline">
             Retry
+          </button>
+        </div>
+      ) : activeTab === 'favorites' && !isAuthenticated ? (
+        <div className="flex-1 min-h-0 flex flex-col items-center justify-center py-12 text-center">
+          <Star className="w-10 h-10 text-slate-300 dark:text-gray-600 mb-4" />
+          <p className="text-slate-600 dark:text-gray-400 mb-4">Log in to view and manage your favorites</p>
+          <button
+            onClick={() => navigate('/login')}
+            className="bg-[#2ebd85] hover:bg-[#26a070] text-white px-6 py-2.5 rounded-lg font-semibold transition-colors"
+          >
+            Sign In
           </button>
         </div>
       ) : (
@@ -332,24 +349,31 @@ export default function StocksTable() {
       </div>
       )}
 
-      {showAddedToast && (
-        <div className="fixed bottom-6 right-6 z-60 flex items-center gap-3 rounded-lg border border-[#2ebd85] bg-[#edfaf4] dark:bg-gray-800 dark:border-[#2ebd85] px-4 py-3 shadow-lg">
-          <span className="text-sm font-medium text-[#2ebd85]">Added to favorites</span>
-          <button
-            onClick={() => {
-              setShowAddedToast(false);
-              if (toastTimerRef.current) {
-                clearTimeout(toastTimerRef.current);
-                toastTimerRef.current = null;
-              }
-            }}
-            className="text-slate-500 dark:text-gray-400 hover:text-[#2ebd85] transition-colors"
-            aria-label="Close notification"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
+      {showAddedToast && (() => {
+        const isError = toastMessage !== 'Added to favorites';
+        return (
+          <div className={`fixed bottom-6 right-6 z-60 flex items-center gap-3 rounded-lg border px-4 py-3 shadow-lg ${
+            isError
+              ? 'border-rose-500 bg-rose-50 dark:bg-gray-800 dark:border-rose-500'
+              : 'border-[#2ebd85] bg-[#edfaf4] dark:bg-gray-800 dark:border-[#2ebd85]'
+          }`}>
+            <span className={`text-sm font-medium ${isError ? 'text-rose-600 dark:text-rose-400' : 'text-[#2ebd85]'}`}>{toastMessage}</span>
+            <button
+              onClick={() => {
+                setShowAddedToast(false);
+                if (toastTimerRef.current) {
+                  clearTimeout(toastTimerRef.current);
+                  toastTimerRef.current = null;
+                }
+              }}
+              className={`transition-colors ${isError ? 'text-slate-500 dark:text-gray-400 hover:text-rose-600' : 'text-slate-500 dark:text-gray-400 hover:text-[#2ebd85]'}`}
+              aria-label="Close notification"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        );
+      })()}
     </div>
   );
 }

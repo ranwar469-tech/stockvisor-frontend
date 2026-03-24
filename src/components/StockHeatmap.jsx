@@ -25,7 +25,7 @@ export const options = {
   },
 };
 
-const StockHeatmap = () => {
+const StockHeatmap = ({ headerAction = null }) => {
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -72,8 +72,11 @@ const StockHeatmap = () => {
 
   if (loading) return (
     <div className="flex flex-col h-full w-full overflow-hidden bg-gray-900 p-3 rounded-xl border border-gray-800">
-      <div className="flex justify-between items-center mb-2 shrink-0">
-        <h2 className="text-white text-sm font-bold">Market Heatmap</h2>
+      <div className="flex items-center justify-between gap-3 mb-2 shrink-0">
+        <div className="flex items-center gap-2">
+          <h2 className="text-white text-sm font-bold">Market Heatmap</h2>
+          {headerAction}
+        </div>
       </div>
       <div className="flex-1 min-h-0 w-full flex items-center justify-center">
         <div className="text-blue-400 animate-pulse text-sm font-semibold">Loading Heatmap...</div>
@@ -83,8 +86,11 @@ const StockHeatmap = () => {
 
   if (error) return (
     <div className="flex flex-col h-full w-full overflow-hidden bg-gray-900 p-3 rounded-xl border border-gray-800">
-      <div className="flex justify-between items-center mb-2 shrink-0">
-        <h2 className="text-white text-sm font-bold">Market Heatmap</h2>
+      <div className="flex items-center justify-between gap-3 mb-2 shrink-0">
+        <div className="flex items-center gap-2">
+          <h2 className="text-white text-sm font-bold">Market Heatmap</h2>
+          {headerAction}
+        </div>
       </div>
       <div className="flex-1 min-h-0 w-full flex items-center justify-center">
         <div className="text-red-400 text-sm">{error}</div>
@@ -94,11 +100,29 @@ const StockHeatmap = () => {
 
   return (
     <div className="flex flex-col h-full w-full overflow-hidden bg-gray-900 p-3 rounded-xl border border-gray-800">
-      <div className="flex justify-between items-center mb-2 shrink-0">
-        <h2 className="text-white text-sm font-bold">Market Heatmap</h2>
-        <div className="flex gap-3 text-[10px]">
-           <div className="flex items-center gap-1"><span className="w-2 h-2 bg-red-600 rounded-sm"></span><span className="text-gray-400">Loss</span></div>
-           <div className="flex items-center gap-1"><span className="w-2 h-2 bg-green-600 rounded-sm"></span><span className="text-gray-400">Gain</span></div>
+      <div className="flex justify-between items-center gap-3 mb-2 shrink-0">
+        <div className="flex items-center gap-2">
+          <h2 className="text-white text-sm font-bold">Market Heatmap</h2>
+          {headerAction}
+        </div>
+        <div className="flex items-center gap-2 text-[10px]">
+          <span className="text-red-400 font-medium">Loss</span>
+          <div className="relative flex flex-col items-center gap-0.5">
+            {/* Gradient track */}
+            <div
+              className="w-32 h-2.5 rounded-full"
+              style={{ background: 'linear-gradient(to right, #b91c1c, #1f2937, #15803d)' }}
+            />
+            {/* Tick marks */}
+            <div className="w-32 flex justify-between px-0.5">
+              <span className="w-px h-1 bg-gray-500" />
+              <span className="w-px h-1 bg-gray-500" />
+              <span className="w-px h-1 bg-gray-500" />
+              <span className="w-px h-1 bg-gray-500" />
+              <span className="w-px h-1 bg-gray-500" />
+            </div>
+          </div>
+          <span className="text-green-400 font-medium">Gain</span>
         </div>
       </div>
 

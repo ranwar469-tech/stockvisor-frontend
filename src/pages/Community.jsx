@@ -5,8 +5,9 @@ import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 export default function Community() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [topUsers, setTopUsers] = useState([]);
+  const [myContribution, setMyContribution] = useState(null);
   const [contributorsLoading, setContributorsLoading] = useState(false);
   const [contributorsError, setContributorsError] = useState('');
 
@@ -19,6 +20,7 @@ export default function Community() {
 
     setContributorsLoading(true);
     setContributorsError('');
+    setMyContribution(null);
     try {
       const { data } = await api.get('/discussions/threads');
       const rows = Array.isArray(data) ? data : [];
@@ -78,11 +80,21 @@ export default function Community() {
         contributor.points = (contributor.threads * 25) + (contributor.posts * 10);
       });
 
-      const top = Object.values(leaderboard)
-        .sort((a, b) => b.points - a.points)
-        .slice(0, 3);
+      const allSorted = Object.values(leaderboard).sort((a, b) => b.points - a.points);
 
+      const top = allSorted.slice(0, 3);
       setTopUsers(top);
+
+      if (user) {
+        const myId = String(user.id || '').trim();
+        const mine = leaderboard[myId] || null;
+        if (mine) {
+          const rank = allSorted.findIndex(c => c.id === myId) + 1;
+          setMyContribution({ ...mine, rank });
+        } else {
+          setMyContribution({ id: myId, name: user.username || myId, posts: 0, threads: 0, points: 0, rank: allSorted.length + 1 });
+        }
+      }
     } catch (err) {
       const msg = err.response?.data?.detail || 'Failed to load contributors.';
       setContributorsError(typeof msg === 'string' ? msg : 'Failed to load contributors.');
@@ -133,6 +145,28 @@ export default function Community() {
             {!isAuthenticated && (
               <div className="px-6 py-8 text-center text-sm text-slate-500 dark:text-gray-400">
                 Log in to see contributor rankings.
+              </div>
+            )}
+
+            {isAuthenticated && myContribution && (
+              <div className="px-6 py-4 border-b border-slate-200 dark:border-gray-700 bg-[#edfaf4] dark:bg-[#0d2b1e]">
+                <p className="text-xs font-semibold text-slate-500 dark:text-gray-400 uppercase tracking-wider mb-3">Your Contribution</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-[#2ebd85] flex items-center justify-center text-white text-xs font-bold shrink-0">
+                    #{myContribution.rank}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-slate-900 dark:text-white truncate">{myContribution.name}</p>
+                    <div className="flex items-center gap-3 mt-1 flex-wrap">
+                      <span className="flex items-center gap-1 text-[#2ebd85] text-xs font-semibold">
+                        <Trophy className="w-3 h-3" />
+                        {myContribution.points} pts
+                      </span>
+                      <span className="text-xs text-slate-500 dark:text-gray-400">{myContribution.threads} thread{myContribution.threads !== 1 ? 's' : ''}</span>
+                      <span className="text-xs text-slate-500 dark:text-gray-400">{myContribution.posts} post{myContribution.posts !== 1 ? 's' : ''}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 

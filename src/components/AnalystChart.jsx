@@ -26,8 +26,9 @@ const BASE_OPTIONS = {
 export default function AnalystChart({
 	recommendationData = [],
 	width = 'auto',
-	height = '312px',
+	height = '324px',
 	defaultSymbol = 'AAPL',
+	headerAction = null,
 }) {
 	const initialRows = Array.isArray(recommendationData)
 		? recommendationData
@@ -178,7 +179,7 @@ export default function AnalystChart({
 		() => ({
 			...BASE_OPTIONS,
 			title: symbol ? `${symbol} Recommendations` : 'Recommendation Trends',
-			titleTextStyle: { color: '#0f172a', fontSize: 12, bold: true },
+			titleTextStyle: { color: '#FFFFFF', fontSize: 12, bold: true },
 		}),
 		[symbol]
 	);
@@ -188,6 +189,10 @@ export default function AnalystChart({
 			className="bg-white dark:bg-gray-800 rounded-xl border border-slate-200 dark:border-gray-700 p-2"
 			style={{ width, height }}
 		>
+			<div className="mb-2 flex items-center justify-between gap-2">
+				<h2 className='font-bold text-sm'>Expert Analysis</h2>
+				{headerAction}
+			</div>
 			<div ref={searchRef} className="relative mb-2">
 				<Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 dark:text-gray-400 pointer-events-none" />
 				<input
@@ -241,7 +246,7 @@ export default function AnalystChart({
 				<Chart
 					chartType="ColumnChart"
 					width="100%"
-					height="260px"
+					height="220px"
 					data={chartData}
 					options={chartOptions}
 				/>

@@ -4,7 +4,7 @@ import { RefreshCw, Search } from 'lucide-react';
 import api from '../services/api';
 
 const BASE_OPTIONS = {
-	isStacked: true,
+	isStacked: false,
 	legend: { position: 'bottom', textStyle: { fontSize: 10, color: '#64748b' } },
 	chartArea: { width: '86%', height: '60%' },
 	colors: ['#16a34a', '#2ebd85', '#f59e0b', '#f97316', '#ef4444'],
@@ -128,33 +128,7 @@ export default function AnalystChart({
 		const sortedRows = [...rows].sort(
 			(first, second) => new Date(first.period) - new Date(second.period)
 		);
-		const recentThreeMonths = sortedRows.slice(-3);
-
-		let normalizedThreeMonths = recentThreeMonths;
-		if (recentThreeMonths.length < 3) {
-			const template = recentThreeMonths[recentThreeMonths.length - 1] || {
-				strongBuy: 10,
-				buy: 20,
-				hold: 7,
-				sell: 2,
-				strongSell: 1,
-				period: new Date().toISOString().slice(0, 10),
-			};
-
-			const baseDate = new Date(template.period);
-			const safeBaseDate = Number.isNaN(baseDate.getTime()) ? new Date() : baseDate;
-
-			normalizedThreeMonths = Array.from({ length: 3 }, (_, index) => {
-				const monthOffset = 2 - index;
-				const periodDate = new Date(safeBaseDate);
-				periodDate.setMonth(periodDate.getMonth() - monthOffset);
-
-				return {
-					...template,
-					period: periodDate.toISOString().slice(0, 10),
-				};
-			});
-		}
+		const currentMonth = sortedRows.slice(-1);
 
 		const formatPeriodLabel = (period) => {
 			const date = new Date(period);
@@ -164,7 +138,7 @@ export default function AnalystChart({
 
 		return [
 			['Period', 'Strong Buy', 'Buy', 'Hold', 'Sell', 'Strong Sell'],
-			...normalizedThreeMonths.map((item) => [
+			...currentMonth.map((item) => [
 				formatPeriodLabel(item.period),
 				Number(item.strongBuy || 0),
 				Number(item.buy || 0),

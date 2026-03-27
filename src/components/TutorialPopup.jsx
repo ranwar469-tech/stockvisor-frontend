@@ -1,20 +1,21 @@
 import { useEffect } from 'react';
-import { BookOpen, X } from 'lucide-react';
+import { BookOpen, X, PlayCircle } from 'lucide-react';
 
 export const DEFAULT_TUTORIALS = {
   analystChart: {
+    videoUrl: 'https://drive.google.com/file/d/18P1prtAJymIvuhvHZy_LDf-EH_-_TCZF/view?usp=drive_link',
     badge: 'Dashboard guide',
     title: 'Expert Analysis',
     summary:
-      'This chart compares analyst recommendation counts for the past 3 months so you can see whether expert sentiment is strengthening, weakening, or staying flat.',
+      'This chart shows analyst recommendation counts for the current month so you can see whether expert sentiment is strengthening, weakening, or staying flat.',
     steps: [
       'Search for a stock symbol in the searchbar.',
-      'Read the stacked bars from Strong Buy to Strong Sell to compare recommendations.',
-      'Look across the 3 months analyis to check analyst confidence is improving or fading over time.',
+      'Read the bars from Strong Buy to Strong Sell to compare recommendations.',
     ],
     tip: 'A high Buy count is a useful recommendation, but it should still be compared with price action, earnings, and market conditions.',
   },
   stockHeatmap: {
+    videoUrl: 'https://drive.google.com/file/d/1WRcZbmycH3cjZ4PtyKT8eIdf_Uv-hnn8/view?usp=drive_link',
     badge: 'Dashboard guide',
     title: 'Market Heatmap',
     summary:
@@ -28,6 +29,7 @@ export const DEFAULT_TUTORIALS = {
     tip: 'A sector full of green tiles can indicate short-term momentum, but it does not guarantee the move will continue.',
   },
   stocksTable: {
+    videoUrl: 'https://drive.google.com/file/d/1Xyi1G-finLinNDcJ4Q9ndaETeOSFKDlH/view?usp=drive_link',
     badge: 'Dashboard guide',
     title: 'Popular Stocks Table',
     summary:
@@ -40,6 +42,7 @@ export const DEFAULT_TUTORIALS = {
     tip: 'Favorites work best when you keep them limited to the stocks you genuinely monitor every day.',
   },
   areaChartPortfolio: {
+    videoUrl: 'https://drive.google.com/file/d/1vSeuzO13JQbmejrv-ksdlUseKczTjmE_/view?usp=drive_link',
     badge: 'Portfolio guide',
     title: 'Portfolio Cost vs Market Value',
     summary:
@@ -53,6 +56,7 @@ export const DEFAULT_TUTORIALS = {
     tip: 'This chart is best for judging overall portfolio progress, not the performance of a single stock.',
   },
   portfolioRadarChart: {
+    videoUrl: 'https://drive.google.com/file/d/1kcWb_M5ikEg3FG_FDkB6JdOglwwYmGuH/view?usp=drive_link',
     badge: 'Portfolio guide',
     title: 'Sector Allocation',
     summary:
@@ -66,6 +70,7 @@ export const DEFAULT_TUTORIALS = {
     tip: 'A stretched radar shape usually means your portfolio depends more heavily on a small number of sectors.',
   },
   holdings: {
+    videoUrl: 'https://drive.google.com/file/d/1iYxahuuQEG0OhCiPHxJYthyR6pRinrwY/view?usp=drive_link',
     badge: 'Portfolio guide',
     title: 'Holdings Table',
     summary:
@@ -147,7 +152,7 @@ export default function TutorialPopup({
         role="dialog"
         aria-modal="true"
         aria-labelledby={dialogTitleId}
-        className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-gray-700 dark:bg-gray-800"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-gray-700 dark:bg-gray-800"
       >
         <div className="mb-5 flex items-start justify-between gap-4">
           <div className="min-w-0">
@@ -200,7 +205,16 @@ export default function TutorialPopup({
           </div>
         )}
 
-        <div className="mt-6 flex justify-end">
+        <div className="mt-6 flex items-center justify-between">
+          <a
+            href={activeTutorial.videoUrl || "#"}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#2ebd85] transition-colors hover:text-[#26a070] dark:text-[#4cc99b] dark:hover:text-[#7de0b8]"
+          >
+            <PlayCircle className="h-4 w-4" />
+            Watch tutorial
+          </a>
           <button
             type="button"
             onClick={handleClose}

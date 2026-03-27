@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, MessageSquare, Users, RefreshCw, MoreVertical, Trash2 } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Users, RefreshCw, MoreVertical, Trash2, Heart } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -19,6 +19,8 @@ export default function DiscussionThread() {
   const [openThreadMenu, setOpenThreadMenu] = useState(false);
   const [deletingPostId, setDeletingPostId] = useState(null);
   const [deletingThread, setDeletingThread] = useState(false);
+  const [likedByPostId, setLikedByPostId] = useState({});
+  const [likingPostId, setLikingPostId] = useState(null);
 
   const fetchThread = useCallback(async () => {
     if (!threadId) return;
@@ -28,6 +30,49 @@ export default function DiscussionThread() {
     try {
       const { data } = await api.get(`/discussions/threads/${threadId}`);
       setThread(data);
+
+      const posts = Array.isArray(data?.posts) ? data.posts : [];
+      if (posts.length === 0) {
+        setLikedByPostId({});
+      } else {
+        const likesResults = await Promise.all(
+          posts.map(async (post) => {
+            try {
+              const { data: likesData } = await api.get(`/discussions/posts/${post.id}/likes`);
+              return {
+                postId: post.id,
+                liked: Boolean(likesData?.liked),
+                likes: Number.isFinite(likesData?.likes) ? likesData.likes : post.likes,
+              };
+            } catch {
+              return {
+                postId: post.id,
+                liked: false,
+                likes: post.likes,
+              };
+            }
+          })
+        );
+
+        const nextLikedMap = {};
+        const likesByPostId = {};
+        likesResults.forEach((result) => {
+          nextLikedMap[result.postId] = result.liked;
+          likesByPostId[result.postId] = result.likes;
+        });
+        setLikedByPostId(nextLikedMap);
+        setThread((prev) => {
+          if (!prev) return prev;
+          const prevPosts = Array.isArray(prev.posts) ? prev.posts : [];
+          return {
+            ...prev,
+            posts: prevPosts.map((post) => ({
+              ...post,
+              likes: likesByPostId[post.id] ?? post.likes,
+            })),
+          };
+        });
+      }
     } catch (err) {
       const msg = err.response?.data?.detail || 'Failed to load discussion thread.';
       setError(typeof msg === 'string' ? msg : 'Failed to load discussion thread.');
@@ -94,6 +139,40 @@ export default function DiscussionThread() {
       setPostError(typeof msg === 'string' ? msg : 'Failed to delete post.');
     } finally {
       setDeletingPostId(null);
+    }
+  };
+
+  const handleTogglePostLike = async (postId) => {
+    if (!postId || likingPostId === postId) return;
+
+    setLikingPostId(postId);
+    setPostError('');
+    try {
+      const { data } = await api.post(`/discussions/posts/${postId}/likes`);
+      const liked = Boolean(data?.liked);
+      const likes = Number.isFinite(data?.likes) ? data.likes : 0;
+
+      setLikedByPostId((prev) => ({ ...prev, [postId]: liked }));
+      setThread((prev) => {
+        if (!prev) return prev;
+        const prevPosts = Array.isArray(prev.posts) ? prev.posts : [];
+        return {
+          ...prev,
+          posts: prevPosts.map((post) =>
+            post.id === postId
+              ? {
+                ...post,
+                likes,
+              }
+              : post
+          ),
+        };
+      });
+    } catch (err) {
+      const msg = err.response?.data?.detail || 'Failed to update like.';
+      setPostError(typeof msg === 'string' ? msg : 'Failed to update like.');
+    } finally {
+      setLikingPostId(null);
     }
   };
 
@@ -255,6 +334,22 @@ export default function DiscussionThread() {
                   <p className="text-sm text-slate-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
                     {post.message}
                   </p>
+                  <div className="mt-3 flex items-center">
+                    <button
+                      type="button"
+                      onClick={() => handleTogglePostLike(post.id)}
+                      disabled={likingPostId === post.id}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold transition-colors border ${
+                        likedByPostId[post.id]
+                          ? 'text-rose-600 border-rose-300 bg-rose-50 dark:bg-rose-900/20 dark:border-rose-700 dark:text-rose-300'
+                          : 'text-slate-600 border-slate-300 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300'
+                      } disabled:opacity-60`}
+                      title={likedByPostId[post.id] ? 'Unlike post' : 'Like post'}
+                    >
+                      <Heart className={`w-3.5 h-3.5 ${likedByPostId[post.id] ? 'fill-current' : ''}`} />
+                      <span>{post.likes ?? 0}</span>
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

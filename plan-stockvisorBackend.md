@@ -1,262 +1,427 @@
-# Plan: FastAPI Backend with PostgreSQL for Stockvisor MVP
+# Implementation Document: StockVisor Frontend + Backend (Current State)
 
-**TL;DR:** Create a separate `stockvisor-backend` folder alongside the frontend with FastAPI, PostgreSQL, and SQLAlchemy. The frontend auth system (Login page, Register page, AuthContext, Axios API service, ProtectedRoute) is **already built and awaiting a live backend**.  Browsing the site no longer requires authentication – the guard is triggered only when the user chooses to log in via the account menu or tries to add a stock from their portfolio. Priority is standing up the auth, portfolio, and stock-data endpoints so the frontend can drop its hardcoded data.
-
----
-
-## Current Frontend State (as of Feb 2026)
-
-### Tech Stack
-- React 19 + React Router DOM 7 + Vite
-- Tailwind CSS v4 (explicit green theme `#2ebd85`)
-- Axios 1.13.5 — **wired up** via `src/services/api.js`
-- Chart.js / react-chartjs-2, lucide-react, react-icons
-
-### What Has Been Built (frontend)
-
-| File | Status |
-|------|--------|
-| `src/services/api.js` | ✅ Axios instance → `VITE_API_URL` or `http://localhost:8000`; auto-attaches JWT from `localStorage`; auto-redirects on 401 |
-| `src/context/AuthContext.jsx` | ✅ `AuthProvider`, `login()`, `register()`, `logout()`, `isAuthenticated`; user state persisted to `localStorage` |
-| `src/hooks/useAuth.jsx` | ✅ Re-exports `useAuth` from context |
-| `src/pages/Login.jsx` | ✅ Email + password form, error banner, spinner, links to `/register` |
-| `src/pages/Register.jsx` | ✅ Username + email + password + confirm, client-side validation, links to `/login` |
-| `src/components/ProtectedRoute.jsx` | ✅ Redirects unauthenticated users to `/login`; shows spinner while auth loads |
-| `src/App.jsx` | ✅ `/login` and `/register` are public; other pages are freely browsable. Auth is only enforced when a user clicks the login link in the account menu or taps **Add Stock** on Portfolio (redirects to `/login`). |
-| `src/main.jsx` | ✅ `<AuthProvider>` wraps the entire app |
-| `src/components/Layout.jsx` | ✅ Shows user avatar initial + username/email in dropdown; `logout()` navigates to `/login` |
-
-### Pages & Data Status
-
-| Page | Current Data | Backend Priority |
-|------|-------------|-----------------|
-| **Home** | Hardcoded 6 stocks | High — stock quotes + user watchlist |
-| **Portfolio** | Hardcoded 4 holdings, local add/remove | High — persisted holdings + prices |
-| **Community** | Hardcoded discussions + contributors | Medium |
-| **News** | Hardcoded articles | Medium |
-| **Tips** | Hardcoded educational content | Low (static is fine) |
-| **About** | Static page | None |
+**TL;DR:** StockVisor is fully implemented as a React + Vite frontend and a FastAPI backend in a sibling folder. Authentication is delegated to Supabase Auth, API authorization is done by validating Supabase JWTs through JWKS, app data is persisted in PostgreSQL via SQLAlchemy, and market/news/AI data is served through yfinance, Finnhub, and Hugging Face inference.
 
 ---
 
+## Current Full-Stack State (as of Mar 2026)
+
+### Frontend Stack
+- React 19 + React Router
+- Vite
+- Tailwind-style utility classes
+- Axios client with interceptors
+- lucide-react icons
+- react-google-charts
+- react-chartjs-2 + Chart.js
+- recharts
+
+### Backend Stack
+- FastAPI
+- SQLAlchemy + PostgreSQL
+- Supabase Auth (GoTrue) for user auth lifecycle
+- Supabase JWKS validation for bearer tokens
+- yfinance for market data and symbol search
+- Finnhub for market news and analyst recommendations
+- Hugging Face Inference API for sentiment and AI alert summaries
+
 ---
 
-## Backend Steps
+## 1. Repository Layout (Implemented)
 
-### 1. Create project structure
-
-Location: `c:\Users\ranwa\Desktop\Uni\FINAL\Ryan Anwar 228939 GP\stockvisor-backend`
-
+### Frontend (`stockvisor-frontend`)
 ```
-stockvisor-backend/
-├── app/
-│   ├── main.py
-│   ├── database.py
-│   ├── models/
-│   │   ├── __init__.py
-│   │   ├── user.py
-│   │   ├── portfolio.py
-│   │   └── watchlist.py
-│   ├── schemas/
-│   │   ├── __init__.py
-│   │   ├── auth.py
-│   │   ├── portfolio.py
-│   │   └── stocks.py
-│   ├── routes/
-│   │   ├── __init__.py
-│   │   ├── auth.py
-│   │   ├── portfolio.py
-│   │   ├── stocks.py
-│   │   └── watchlist.py
-│   └── core/
-│       ├── config.py
-│       └── security.py
-├── tests/
-├── .env
-├── .env.example
-└── requirements.txt
+src/
+  main.jsx
+  App.jsx
+  services/
+    api.js
+  context/
+    AuthContext.jsx
+  hooks/
+    useAuth.jsx
+    useTheme.jsx
+  pages/
+    Home.jsx
+    Portfolio.jsx
+    Community.jsx
+    DiscussionThread.jsx
+    News.jsx
+    Tips.jsx
+    About.jsx
+    AccountSettings.jsx
+    Login.jsx
+    Register.jsx
+  components/
+    Layout.jsx
+    ProtectedRoute.jsx
+    AnalystChart.jsx
+    StockHeatmap.jsx
+    StocksTable.jsx
+    AreaChartPortfolio.jsx
+    PortfolioRadarChart.jsx
+    Discussion.jsx
+    AIInsightsSidebar.jsx
+    TipsComponent.jsx
+    TutorialPopup.jsx
+    StockWdgets.jsx
 ```
 
-`requirements.txt`:
+### Backend (`stockvisor-backend`)
 ```
-fastapi
-uvicorn[standard]
-sqlalchemy
-psycopg2-binary
-pydantic[email]
-pydantic-settings
-python-jose[cryptography]
-passlib[bcrypt]
-python-multipart
-python-dotenv
-```
-
----
-
-### 2. Database layer
-
-- `app/database.py` — SQLAlchemy engine from `DATABASE_URL` env var, `SessionLocal`, `Base`
-- `app/models/user.py` — `User`: `id`, `username`, `email`, `hashed_password`, `created_at`
-- `app/models/portfolio.py` — `Holding`: `id`, `user_id (FK)`, `symbol`, `name`, `quantity`, `purchase_price`, `created_at`
-- `app/models/watchlist.py` — `WatchlistItem`: `id`, `user_id (FK)`, `symbol`, `added_at`
-
----
-
-### 3. Auth system — must match frontend contract exactly
-
-The frontend (`AuthContext.jsx`) calls these endpoints with these exact shapes:
-
-#### `POST /auth/register`
-- **Body (JSON):** `{ "username": str, "email": str, "password": str }`
-- **Response:** `{ "access_token": str, "token_type": "bearer", "user": { "id": int, "username": str, "email": str } }`
-
-#### `POST /auth/login`
-- **Body (form-encoded / `OAuth2PasswordRequestForm`):** `username=<email>&password=<password>`
-  > The frontend sends the `username` field containing the user's **email**. FastAPI's `OAuth2PasswordRequestForm` uses `username` by convention.
-- **Response:** `{ "access_token": str, "token_type": "bearer", "user": { "id": int, "username": str, "email": str } }`
-
-#### Implementation files:
-- `app/core/config.py` — `SECRET_KEY`, `ALGORITHM = "HS256"`, `ACCESS_TOKEN_EXPIRE_MINUTES = 60`
-- `app/core/security.py` — `hash_password()`, `verify_password()`, `create_access_token()`, `get_current_user()` dependency
-- `app/schemas/auth.py` — `UserCreate`, `Token`, `UserOut` Pydantic models
-- `app/routes/auth.py` — `/auth/register` and `/auth/login` endpoints
-
----
-
-### 4. Portfolio endpoints
-
-Frontend `Portfolio.jsx` currently uses local React state. Replace with API calls once these endpoints exist.
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/portfolio/` | Return all holdings for the authenticated user (merged with live prices) |
-| `POST` | `/portfolio/` | Add a holding: `{ symbol, name, quantity, purchase_price }` |
-| `DELETE` | `/portfolio/{holding_id}` | Remove a holding (must belong to current user) |
-
-Expected GET response item shape (matches frontend `holdings` state):
-```json
-{
-  "id": "1",
-  "symbol": "AAPL",
-  "name": "Apple Inc.",
-  "quantity": 50,
-  "purchasePrice": 150.00,
-  "currentPrice": 178.45,
-  "dailyChange": 2.34,
-  "dailyChangePercent": 1.33
-}
-```
-> `currentPrice`, `dailyChange`, `dailyChangePercent` are injected by the portfolio endpoint from the stock quotes data before returning.
-
----
-
-### 5. Stock data endpoint (mock, real-API-ready)
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/stocks/quote/{symbol}` | Return price data for a symbol |
-| `GET` | `/stocks/search?q={query}` | Search stocks by symbol or name |
-
-Expected quote response:
-```json
-{
-  "symbol": "AAPL",
-  "name": "Apple Inc.",
-  "price": 178.45,
-  "change": 2.34,
-  "changePercent": 1.33,
-  "volume": "52.3M"
-}
-```
-
-Start with a `MOCK_PRICES` dict in `app/routes/stocks.py`. To add a real data source later (Alpha Vantage / Polygon.io), only the internal implementation changes — the response shape stays fixed.
-
----
-
-### 6. Watchlist endpoint
-
-The Home page's starred favorites should persist per-user via this API.
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/watchlist/` | Get authenticated user's watchlist symbols |
-| `POST` | `/watchlist/` | Add `{ "symbol": str }` |
-| `DELETE` | `/watchlist/{symbol}` | Remove symbol |
-
----
-
-### 7. CORS (`app/main.py`)
-
-```python
-from fastapi.middleware.cors import CORSMiddleware
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app/
+  main.py
+  database.py
+  core/
+    config.py
+    security.py
+  models/
+    __init__.py
+    user.py
+    portfolio.py
+    watchlist.py
+    saved_news.py
+    discussion.py
+  schemas/
+    auth.py
+    portfolio.py
+    stocks.py
+    discussions.py
+    insights.py
+  routes/
+    auth.py
+    portfolio.py
+    watchlist.py
+    stocks.py
+    heatmap.py
+    insights.py
+    discussions.py
 ```
 
 ---
 
-### 8. Environment variables (`.env`)
+## 2. Frontend Architecture and Responsibilities
 
+### App Bootstrap and Routing
+- `main.jsx` mounts React app, router, and auth provider.
+- `App.jsx` defines route graph.
+- `/login` and `/register` are public auth pages.
+- Main app routes (`/`, `/portfolio`, `/community`, `/news`, `/tips`, `/about`, `/settings`) are rendered under `Layout.jsx`.
+
+### Global Service and State Layer
+- `services/api.js`
+  - Uses `VITE_API_URL` with default `http://localhost:8000`.
+  - Injects `Authorization: Bearer <token>` from `localStorage` key `sv_token`.
+  - On API `401` (except login/register), clears auth storage and dispatches `auth:expired` event.
+- `context/AuthContext.jsx`
+  - Stores current user, loading state, auth methods (`login`, `register`, `logout`, `updateUser`).
+  - Restores session from `sv_token` + `sv_user`.
+  - Subscribes to `auth:expired` for centralized forced logout behavior.
+- `hooks/useTheme.jsx`
+  - Persists dark/light theme in `localStorage` key `theme`.
+
+### Layout and Cross-Cutting UI
+- `components/Layout.jsx`
+  - Header, nav, footer.
+  - User menu (about, login/logout, settings).
+  - Theme switch.
+  - Floating action button that opens `AIInsightsSidebar`.
+
+### Feature Pages
+- `pages/Home.jsx`
+  - Market cards (market status, AI sentiment, stock count).
+  - Renders `AnalystChart`, `StockHeatmap`, `StocksTable`.
+  - Uses `TutorialPopup` for contextual walkthroughs.
+- `pages/Portfolio.jsx`
+  - Auth-gated actions for add/sell holdings.
+  - Fetches and renders holdings table and portfolio metrics.
+  - Uses `AreaChartPortfolio` and `PortfolioRadarChart`.
+  - Uses autocomplete stock search for add/sell forms.
+- `pages/Community.jsx`
+  - Renders `Discussion` list module.
+  - Builds top contributor leaderboard by combining thread and post data.
+- `pages/DiscussionThread.jsx`
+  - Thread detail view, posting, deleting own posts/thread, like/unlike posts.
+- `pages/News.jsx`
+  - Latest feed and saved articles tabs.
+  - Save/unsave actions for authenticated users.
+- `pages/Tips.jsx`
+  - Static educational tips catalog.
+  - Renders detail via `TipsComponent`.
+- `pages/AccountSettings.jsx`
+  - Profile update, password change, account deletion.
+- `pages/Login.jsx` and `pages/Register.jsx`
+  - Form UX, validation, submit states, backend auth integration.
+
+### Reusable Data Widgets
+- `AnalystChart.jsx`: symbol search + analyst recommendation chart.
+- `StockHeatmap.jsx`: Google TreeMap from heatmap API payload.
+- `StocksTable.jsx`: quote table, favorites tab, watchlist sync.
+- `AreaChartPortfolio.jsx`: invested vs current value progression chart.
+- `PortfolioRadarChart.jsx`: sector allocation radar.
+- `Discussion.jsx`: list/create/delete threads module.
+- `AIInsightsSidebar.jsx`: market overview, sector sentiment, AI alerts.
+- `TutorialPopup.jsx`: generic instructional modal used across dashboard/portfolio widgets.
+- `StockWdgets.jsx`: TradingView embed component (currently not wired into main pages).
+
+---
+
+## 3. Backend Runtime Architecture
+
+### Application Bootstrap
+- `app/main.py`
+  - Creates FastAPI app.
+  - Creates DB tables on startup (`Base.metadata.create_all`).
+  - Registers all routers.
+  - CORS configured with broad allow settings (`*`).
+
+### Config and Environment
+- `app/core/config.py`
+  - Reads: `DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_JWT_SECRET`, `FINNHUB_API_KEY`, `HF_TOKEN`.
+
+### Database Layer
+- `app/database.py`
+  - SQLAlchemy engine/session/base.
+  - Dependency `get_db()` for route injection.
+
+### Auth and Security
+- `app/core/security.py`
+  - Uses OAuth2 bearer extraction.
+  - Validates JWT via Supabase JWKS endpoint and ES256 signature.
+  - Resolves authenticated user against local `profiles` table.
+
+---
+
+## 4. Database Models (Implemented)
+
+### `profiles` (`models/user.py`)
+- `id` (Supabase user UUID)
+- `username` (unique)
+- `email` (unique)
+- `created_at`
+
+### `holdings` (`models/portfolio.py`)
+- `id`
+- `user_id` (FK to profiles.id)
+- `symbol`
+- `name`
+- `sector`
+- `quantity`
+- `purchase_price`
+- `created_at`
+- unique constraint: `(user_id, symbol)`
+
+### `watchlist_items` (`models/watchlist.py`)
+- `id`
+- `user_id`
+- `symbol`
+- `added_at`
+- unique constraint: `(user_id, symbol)`
+
+### `saved_news` (`models/saved_news.py`)
+- `id`
+- `user_id`
+- `external_id`
+- `headline`, `source`, `url`, `image`, `summary`, `category`, `related`
+- `published_at`, `saved_at`
+- unique constraint: `(user_id, external_id)`
+
+### `threads` and `posts` (`models/discussion.py`)
+- Threads: category/title/creator/message_count/participating_users/json timestamps.
+- Posts: thread_id/user_id/message/likes/liked_user_ids/json timestamps.
+
+---
+
+## 5. API Contracts (Implemented Endpoints)
+
+### Auth (`/auth`)
+| Method | Endpoint | Behavior |
+|--------|----------|----------|
+| POST | `/auth/register` | Creates Supabase user, creates local profile, returns access token + local user |
+| POST | `/auth/login` | Password grant via Supabase, ensures local profile exists, returns token + user |
+| GET | `/auth/me` | Returns current authenticated local profile |
+| PATCH | `/auth/profile` | Updates username and/or email |
+| PATCH | `/auth/password` | Verifies current password then updates password in Supabase |
+| DELETE | `/auth/account` | Deletes local holdings/watchlist/profile and then deletes Supabase user |
+
+### Stocks + News (`/stocks`)
+| Method | Endpoint | Behavior |
+|--------|----------|----------|
+| GET | `/stocks/status` | US market status from yfinance |
+| GET | `/stocks/quote/{symbol}` | Real-time quote payload for symbol |
+| GET | `/stocks/search?q=` | Equity search results |
+| GET | `/stocks/news` | Finnhub category news feed |
+| GET | `/stocks/recommendations?symbol=` | Latest analyst recommendation trend from Finnhub |
+| GET | `/stocks/news/saved` | Current user's saved articles |
+| POST | `/stocks/news/saved` | Save article for current user |
+| DELETE | `/stocks/news/saved/{saved_id}` | Delete saved article |
+
+### Portfolio (`/portfolio`)
+| Method | Endpoint | Behavior |
+|--------|----------|----------|
+| GET | `/portfolio/` | Lists current user's holdings, enriched with live market prices |
+| POST | `/portfolio/` | Adds holding or merges into existing symbol position |
+| POST | `/portfolio/sell` | Sells quantity from a position; deletes row on full close |
+| DELETE | `/portfolio/{holding_id}` | Deletes holding by id if owner |
+
+### Watchlist (`/watchlist`)
+| Method | Endpoint | Behavior |
+|--------|----------|----------|
+| GET | `/watchlist/` | List watchlist symbols |
+| POST | `/watchlist/` | Add symbol |
+| DELETE | `/watchlist/{symbol}` | Remove symbol |
+
+### Heatmap (`/api`)
+| Method | Endpoint | Behavior |
+|--------|----------|----------|
+| GET | `/api/heatmap` | Returns sector/stock market-cap + daily change dataset for heatmap tile rendering |
+
+### Insights (`/insights`)
+| Method | Endpoint | Behavior |
+|--------|----------|----------|
+| GET | `/insights/technology` | Sector sentiment classification |
+| GET | `/insights/energy` | Sector sentiment classification |
+| GET | `/insights/healthcare` | Sector sentiment classification |
+| GET | `/insights/financial` | Sector sentiment classification |
+| GET | `/insights/alerts/` | AI summarized alert snippets from sampled news |
+
+### Discussions (`/discussions`)
+| Method | Endpoint | Behavior |
+|--------|----------|----------|
+| GET | `/discussions/threads` | List discussion threads |
+| POST | `/discussions/threads` | Create thread |
+| GET | `/discussions/threads/{thread_id}` | Thread detail with posts |
+| PUT | `/discussions/threads/{thread_id}` | Update thread (creator only) |
+| DELETE | `/discussions/threads/{thread_id}` | Delete thread (creator only) |
+| POST | `/discussions/threads/{thread_id}/posts` | Add post |
+| GET | `/discussions/threads/{thread_id}/posts` | List posts for thread |
+| PUT | `/discussions/posts/{post_id}` | Update post (author only) |
+| DELETE | `/discussions/posts/{post_id}` | Delete post (author only) |
+| GET | `/discussions/posts/{post_id}/likes` | Get post likes + current-user liked state |
+| POST | `/discussions/posts/{post_id}/likes` | Toggle like/unlike |
+
+---
+
+## 6. Frontend to Backend Integration Map
+
+### Authentication lifecycle
+1. Frontend submits login/register via `AuthContext`.
+2. Backend proxies auth to Supabase and returns bearer token + profile.
+3. Frontend stores `sv_token` and `sv_user`.
+4. Every API request carries bearer token via interceptor.
+5. Backend validates token signature via Supabase JWKS and resolves local profile.
+6. On unauthorized responses, frontend auto-clears session and logs out.
+
+### Home page flows
+1. Market status card -> `GET /stocks/status`.
+2. Analyst chart symbol search -> `GET /stocks/search`.
+3. Analyst chart data -> `GET /stocks/recommendations`.
+4. Heatmap widget -> `GET /api/heatmap`.
+5. Popular stocks table quotes -> `GET /stocks/quote/{symbol}`.
+6. Favorites persistence -> watchlist endpoints.
+
+### Portfolio page flows
+1. Initial table load -> `GET /portfolio/`.
+2. Add modal search -> `GET /stocks/search`.
+3. Add holding -> `POST /portfolio/`.
+4. Sell holding -> `POST /portfolio/sell`.
+5. Delete row -> `DELETE /portfolio/{id}`.
+6. Same holdings dataset drives summary cards and both charts.
+
+### Community flows
+1. Thread list -> `GET /discussions/threads`.
+2. New thread -> `POST /discussions/threads`.
+3. Thread detail + posts -> `GET /discussions/threads/{id}`.
+4. New post -> `POST /discussions/threads/{id}/posts`.
+5. Delete permissions enforced by owner checks for threads/posts.
+6. Likes -> read/toggle post likes endpoints.
+
+### News flows
+1. Latest feed -> `GET /stocks/news`.
+2. Saved list -> `GET /stocks/news/saved`.
+3. Save article -> `POST /stocks/news/saved`.
+4. Unsave article -> `DELETE /stocks/news/saved/{id}`.
+
+### AI sidebar flows
+1. Market mini-overview -> multiple `GET /stocks/quote/*` calls.
+2. Sector sentiment -> sector insight endpoints.
+3. AI alerts -> `GET /insights/alerts/`.
+
+---
+
+## 7. Environment and Runtime Requirements
+
+### Backend `.env` keys
 ```env
-DATABASE_URL=postgresql://postgres:yourpassword@localhost:5432/stockvisor
-SECRET_KEY=your-256-bit-secret-here
-ACCESS_TOKEN_EXPIRE_MINUTES=60
+DATABASE_URL=<postgres-connection-string>
+SUPABASE_URL=<supabase-project-url>
+SUPABASE_ANON_KEY=<supabase-anon-key>
+SUPABASE_SERVICE_ROLE_KEY=<supabase-service-role-key>
+SUPABASE_JWT_SECRET=<supabase-jwt-secret>
+FINNHUB_API_KEY=<finnhub-key>
+HF_TOKEN=<huggingface-token>
 ```
 
-Add `.env.example` with placeholder values. Add `.env` to `.gitignore`.
-
-Frontend `.env` (in `stockvisor-frontend/`):
+### Frontend `.env`
 ```env
 VITE_API_URL=http://localhost:8000
 ```
 
+### Backend dependencies (`requirements.txt`)
+- fastapi
+- uvicorn[standard]
+- sqlalchemy
+- psycopg2-binary
+- pydantic[email]
+- pydantic-settings
+- PyJWT[crypto]
+- python-multipart
+- python-dotenv
+- httpx
+- yfinance
+
 ---
 
-### 9. Frontend API integration (after backend is running)
-
-| File | Change needed |
-|------|--------------|
-| `src/services/portfolioService.js` | `getPortfolio()`, `addHolding()`, `removeHolding()` via `api.js` |
-| `src/services/stockService.js` | `getQuote(symbol)`, `searchStocks(query)` |
-| `src/services/watchlistService.js` | `getWatchlist()`, `addToWatchlist(symbol)`, `removeFromWatchlist(symbol)` |
-| `src/pages/Portfolio.jsx` | Replace `useState` hardcoded data with `useEffect` + `portfolioService` |
-| `src/pages/Home.jsx` | Replace hardcoded stocks with `stockService`; persist starred via `watchlistService` |
-
----
-
-## Verification Checklist
+## 8. Verification Checklist (Current Implementation)
 
 ```bash
 # Backend
 cd stockvisor-backend
-uvicorn app.main:app --reload       # http://localhost:8000/docs
+uvicorn app.main:app --reload
 
 # Frontend
 cd stockvisor-frontend
-npm run dev                          # http://localhost:5173
+npm run dev
 ```
 
-- [ ] `POST /auth/register` → returns `{ access_token, user }` → frontend redirects to `/`
-- [ ] `POST /auth/login` (form-encoded) → returns `{ access_token, user }` → username appears in nav
-- [ ] Any 401 response → frontend clears token and redirects to `/login`
-- [ ] `GET /portfolio/` (with `Authorization: Bearer <token>`) → returns user holdings
-- [ ] `GET /stocks/quote/AAPL` → returns price object
-- [ ] Frontend on `:5173` calls backend on `:8000` without CORS errors
-- [ ] FastAPI Swagger: `http://localhost:8000/docs`
+- [ ] Register creates Supabase user and local profile, and returns token + user payload.
+- [ ] Login returns Supabase access token and local profile payload.
+- [ ] Unauthorized API access triggers frontend auth reset via interceptor.
+- [ ] Portfolio endpoints return enriched market values and support add/sell/delete.
+- [ ] Stocks endpoints return quote/search/news/recommendation data.
+- [ ] Watchlist persists favorites for authenticated users.
+- [ ] Discussions support full thread/post/like lifecycle with ownership checks.
+- [ ] News save/unsave works per user account.
+- [ ] AI insights and alerts endpoints return valid inference payloads.
 
 ---
 
-## Decisions
+## 9. Key Technical Decisions (As Implemented)
 
-- **PostgreSQL** for relational auth + portfolio data
-- **JWT (HS256)** stateless auth — stored in `localStorage` as `sv_token` + `sv_user`
-- **OAuth2PasswordRequestForm** for login — frontend sends `username` field containing the email (FastAPI convention)
-- **Mock stock data first**, real API later — response shape is fixed so frontend never changes
-- `stockvisor-backend` folder isolated alongside `stockvisor-frontend`
-- `sv_token` / `sv_user` localStorage keys namespaced to avoid collisions with other apps
+- Supabase is the source of auth truth, while backend stores local profile and domain data.
+- Bearer token validation is done against Supabase JWKS using ES256.
+- SQLAlchemy models are auto-created at app startup for fast local iteration.
+- Market and portfolio valuations are enriched at request-time from yfinance.
+- News and analyst recommendations come from Finnhub.
+- AI sentiment and alert text are generated through Hugging Face inference APIs.
+- Frontend keeps routes broadly browsable while enforcing authentication at action level for protected operations.
+
+---
+
+## 10. Known Gaps and Next Hardening Steps
+
+- Add robust automated tests under `stockvisor-backend/tests`.
+- Tighten CORS `allow_origins` for production.
+- Add API-level caching/rate-limit handling for yfinance/Finnhub/Hugging Face calls.
+- Add structured logging and centralized error telemetry.
+- Add migration tooling (Alembic) instead of create-all-on-start for production schema control.

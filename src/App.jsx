@@ -30,7 +30,7 @@ function App() {
         <Route path="community" element={<Community />} />
         <Route path="community/threads/:threadId" element={<DiscussionThread />} />
         <Route path="news" element={<News />} />
-        <Route path="tips" element={<Tips />} />
+        <Route path="tutorials" element={<Tips />} />
         <Route path="settings" element={<AccountSettings />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

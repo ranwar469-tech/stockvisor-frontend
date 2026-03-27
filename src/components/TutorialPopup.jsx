@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { BookOpen, X, PlayCircle } from 'lucide-react';
 
 export const DEFAULT_TUTORIALS = {
@@ -92,6 +92,28 @@ export default function TutorialPopup({
   tutorials = {},
   onClose,
 }) {
+  const [showVideo, setShowVideo] = useState(false);
+
+  const tutorialCatalog = {
+    ...DEFAULT_TUTORIALS,
+    ...(tutorials && typeof tutorials === 'object' && !Array.isArray(tutorials) ? tutorials : {}),
+  };
+
+  const activeTutorial = tutorialCatalog[tutorialKey];
+
+  const previewVideoUrl = useMemo(() => {
+    const rawUrl = String(activeTutorial?.videoUrl || '').trim();
+    if (!rawUrl) return '';
+    if (rawUrl.includes('/preview')) return rawUrl;
+
+    const match = rawUrl.match(/\/file\/d\/([^/]+)/);
+    if (match?.[1]) {
+      return `https://drive.google.com/file/d/${match[1]}/preview`;
+    }
+
+    return rawUrl;
+  }, [activeTutorial?.videoUrl]);
+
   const handleClose = () => {
     onClose?.();
   };
@@ -118,16 +140,17 @@ export default function TutorialPopup({
     };
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen || !activeTutorial) {
+      setShowVideo(false);
+      return;
+    }
+    setShowVideo(false);
+  }, [isOpen, tutorialKey, activeTutorial]);
+
   if (!isOpen) {
     return null;
   }
-
-  const tutorialCatalog = {
-    ...DEFAULT_TUTORIALS,
-    ...(tutorials && typeof tutorials === 'object' && !Array.isArray(tutorials) ? tutorials : {}),
-  };
-
-  const activeTutorial = tutorialCatalog[tutorialKey];
 
   if (!activeTutorial) {
     return null;
@@ -194,6 +217,19 @@ export default function TutorialPopup({
           </div>
         )}
 
+        {showVideo && previewVideoUrl && (
+          <div className="mt-5">
+            <div className="relative w-full overflow-hidden rounded-xl border border-slate-200 dark:border-gray-700" style={{ paddingTop: '56.25%' }}>
+              <iframe
+                src={previewVideoUrl}
+                title={`${activeTutorial.title} tutorial video`}
+                allow="autoplay"
+                className="absolute inset-0 h-full w-full"
+              />
+            </div>
+          </div>
+        )}
+
         {activeTutorial.tip && (
           <div className="mt-5 rounded-xl border border-[#bfead8] bg-[#f6fcf9] p-4 dark:border-[#1b6a4a] dark:bg-[#0f2d21]">
             <p className="text-xs font-semibold uppercase tracking-wide text-[#1f8f66] dark:text-[#7de0b8]">
@@ -206,15 +242,14 @@ export default function TutorialPopup({
         )}
 
         <div className="mt-6 flex items-center justify-between">
-          <a
-            href={activeTutorial.videoUrl || "#"}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            type="button"
+            onClick={() => setShowVideo((prev) => !prev)}
             className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#2ebd85] transition-colors hover:text-[#26a070] dark:text-[#4cc99b] dark:hover:text-[#7de0b8]"
           >
             <PlayCircle className="h-4 w-4" />
-            Watch tutorial
-          </a>
+            {showVideo ? 'Hide tutorial' : 'Watch tutorial'}
+          </button>
           <button
             type="button"
             onClick={handleClose}

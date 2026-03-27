@@ -160,7 +160,7 @@ export default function AnalystChart({
 
 	return (
 		<div
-			className="bg-white dark:bg-gray-800 rounded-xl border border-slate-200 dark:border-gray-700 p-2"
+			className="bg-white dark:bg-gray-800 rounded-xl border border-[#2ebd85] dark:border-[#2ebd85] p-2"
 			style={{ width, height }}
 		>
 			<div className="mb-2 flex items-center justify-between gap-2">

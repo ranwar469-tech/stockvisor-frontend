@@ -29,43 +29,43 @@ const FEATURES = [
     icon: PieChart,
     title: 'Sector Allocation Radar',
     description:
-      'A radar chart that instantly shows how your capital is spread across Technology, Energy, Financial Services, Healthcare, and other sectors — making concentration risk easy to spot at a glance.',
+      'A radar chart that instantly shows how your investment is spread across Technology, Energy, Financial Services, Healthcare, and other sectors.',
   },
   {
     icon: Layers,
     title: 'Cost vs Value Area Chart',
     description:
-      'Visualise total invested cost against current market value over your holding timeline. A green gap means profit; a red gap means drawdown. Colour-coded fills make performance immediately visible.',
+      'Visualise total invested cost against current market value over your holding timeline. A green gap means profit and a red gap means drawdown. Colour-coded fills make performance immediately visible.',
   },
   {
     icon: Brain,
     title: 'AI-Powered Insights',
     description:
-      'An AI sidebar delivers on-demand analysis for any stock — covering price action, fundamentals, analyst outlook, and risk factors — powered by a large language model integrated into the platform.',
+      'An AI insights sidebar shows on-demand analysis for the market covering market overview, sector sentiment analysis, and AI alerts and is powered by a large language model integrated into the platform.',
   },
   {
     icon: Newspaper,
     title: 'Financial News',
     description:
-      'Browse the latest market news and save articles to your personal reading list. A saved-articles tab lets you revisit key stories any time.',
+      'Browse the latest market news and save articles. A saved-articles tab lets you see saved stories any time.',
   },
   {
     icon: MessageSquare,
     title: 'Community Discussion',
     description:
-      'Join ticker-specific discussion threads to share analysis, ask questions, and read what other investors are saying about the stocks you follow.',
+      'Join various discussion threads to share analysis, ask questions, and read what other investors are saying about the stock market.',
   },
   {
     icon: Lightbulb,
-    title: 'Investment Tips',
+    title: 'Trading Tutorials',
     description:
-      'A curated tips section covering fundamental and technical concepts — from reading price action to managing risk — to help you build a stronger investing foundation.',
+      'A curated market tutorials section covering fundamental and technical concepts from reading price action to managing risk.',
   },
   {
     icon: Globe2,
-    title: 'Interactive Tutorials',
+    title: 'Interactive Feature Tutorials',
     description:
-      'Every major chart and table has a built-in tutorial popup explaining what it shows, how to read it, and what to watch out for — so the platform is approachable for investors at every level.',
+      'Every major chart and table has a built-in tutorial popup explaining what it shows, how to read it, and what to watch out for and it also includes video tutorials.',
   },
   {
     icon: Shield,
@@ -83,16 +83,16 @@ export default function About() {
       {/* Page Header */}
       <div className="mb-2">
         <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">About StockVisor</h2>
-        <p className="text-slate-600 dark:text-gray-400">
+        <span className="text-slate-600 dark:text-slate-400 mb-6 inline-block border-[#2ebd85] border-b-2">
           A full-stack investment intelligence platform built to help you monitor markets, manage your portfolio, and make more informed decisions.
-        </p>
+        </span>
       </div>
 
       {/* Mission */}
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-[#2ebd85]">
         <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">Our Mission</h3>
         <p className="text-slate-600 dark:text-gray-400 leading-relaxed">
-          StockVisor was built to close the gap between raw market data and actionable insight. We combine real-time prices, AI-driven analysis, community discussion, and portfolio tracking into a single, cohesive platform — so you spend less time switching tools and more time making informed investment decisions.
+          StockVisor is a beginner friendly stock market platform that was built to close the gap between raw market data and actionable insight. We combine real-time prices, AI-driven analysis, community discussion, and portfolio tracking into a single, unified platform so users spend less time switching tools and more time making informed investment decisions.
         </p>
       </div>
 
@@ -136,7 +136,7 @@ export default function About() {
       <div className="bg-linear-to-r from-[#2ebd85] to-[#26a070] rounded-xl p-8 shadow-sm text-white">
         <h3 className="text-2xl font-bold mb-2">Ready to get started?</h3>
         <p className="text-white/80 mb-5">
-          Create a free account to unlock the full platform — portfolio tracking, AI insights, saved news, and community discussion.
+          Create a free account to unlock the full platform: portfolio tracking, AI insights, saved news, and community discussion.
         </p>
         <div className="flex flex-wrap gap-3">
           <button

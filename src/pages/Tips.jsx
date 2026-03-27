@@ -12,7 +12,7 @@ export default function Tips() {
       difficulty: 'Beginner',
       icon: '💡',
       overview:
-        'Dollar-cost averaging (DCA) is a disciplined investment strategy where you invest a fixed sum of money at regular intervals — weekly, monthly, or quarterly — regardless of the market price. Over time, this approach means you buy more shares when prices are low and fewer when prices are high, lowering your average cost per share.',
+        'Dollar-cost averaging (DCA) is a disciplined investment strategy where you invest a fixed sum of money at regular intervals - weekly, monthly, or quarterly - regardless of the market price. Over time, this approach means you buy more shares when prices are low and fewer when prices are high, lowering your average cost per share.',
       keyPoints: [
         'Eliminates the need to time the market perfectly.',
         'Reduces the emotional impact of market swings on your decisions.',
@@ -24,7 +24,7 @@ export default function Tips() {
         { title: 'Set a fixed amount', detail: 'Decide on a fixed dollar amount you can consistently invest each period.' },
         { title: 'Pick a regular interval', detail: 'Monthly is most common; align it with your paycheck for automation.' },
         { title: 'Automate contributions', detail: 'Use your broker\'s recurring investment feature to remove manual effort.' },
-        { title: 'Stay the course', detail: 'Avoid withdrawing during dips — the strategy works best over the long run.' },
+        { title: 'Stay the course', detail: 'Avoid withdrawing during dips, the strategy works best over the long run.' },
       ],
       example:
         'You invest $200 every month into an S&P 500 ETF. In January the price is $100 (you buy 2 shares). In February it drops to $80 (you buy 2.5 shares). In March it rises to $110 (you buy 1.8 shares). Your average cost is lower than if you had bought all shares at the January price.',
@@ -40,12 +40,12 @@ export default function Tips() {
         'Does not protect against a fundamentally declining asset.',
       ],
       bottomNote:
-        'DCA is most powerful when applied to diversified, fundamentally strong assets over a multi-year horizon. It is not a substitute for researching what you invest in.',
+        'DCA is most powerful when applied to diversified, fundamentally strong assets over a multi-year time period. It is not a substitute for researching what you invest in.',
     },
     {
       id: 2,
       title: 'Diversification is Key',
-      description: 'Spread investments across different sectors and asset classes to reduce risk. Avoid putting all eggs in one basket.',
+      description: 'Make investments across different sectors and asset classes to reduce risk.',
       difficulty: 'Beginner',
       icon: '🎯',
       overview:
@@ -54,7 +54,7 @@ export default function Tips() {
         'Combine stocks, bonds, real estate, and cash equivalents.',
         'Invest across multiple sectors: tech, healthcare, financials, energy, etc.',
         'Consider geographic diversification with international exposure.',
-        'Correlation matters — assets that move in opposite directions provide the best hedge.',
+        'Correlation matters - assets that move in opposite directions provide the best hedge.',
       ],
       steps: [
         { title: 'Audit your current holdings', detail: 'List all your investments and group them by sector and asset class.' },
@@ -76,7 +76,7 @@ export default function Tips() {
         'Not all diversification protects against systemic market crashes.',
       ],
       bottomNote:
-        'True diversification is about holding assets that don\'t move together — simply owning many stocks in the same sector is not diversification.',
+        'True diversification is about holding assets that don\'t move together, simply owning many stocks in the same sector is not diversification.',
     },
     {
       id: 3,
@@ -90,8 +90,8 @@ export default function Tips() {
         'P/E = Stock Price ÷ Earnings Per Share (EPS).',
         'A high P/E may indicate the stock is overvalued or has high growth expectations.',
         'A low P/E may indicate undervaluation or declining prospects.',
-        'Always compare P/E within the same industry — sector norms differ widely.',
-        'Forward P/E uses projected earnings; trailing P/E uses past 12 months.',
+        'Always compare P/E within the same industry because sector norms differ widely.',
+        'Forward P/E uses projected earnings, trailing P/E uses past 12 months.',
       ],
       steps: [
         { title: 'Find the EPS', detail: 'Check the company\'s latest earnings report or financial data site for EPS.' },
@@ -109,7 +109,7 @@ export default function Tips() {
       ],
       cons: [
         'Earnings can be manipulated through accounting techniques.',
-        'Doesn\'t account for growth rate — a high P/E may be justified for fast growers.',
+        'Doesn\'t account for growth rate, a high P/E may be justified for fast growers.',
         'Meaningless for companies with negative earnings.',
       ],
       bottomNote:
@@ -127,11 +127,11 @@ export default function Tips() {
         'Support: a price level where buying interest historically prevents further declines.',
         'Resistance: a price level where selling pressure historically prevents further rises.',
         'Moving averages (50-day, 200-day) smooth out noise and signal trend direction.',
-        'Volume confirms price moves — a breakout on high volume is more reliable.',
+        'Volume confirms price moves, a breakout on high volume is more reliable.',
         'Common patterns: head & shoulders, double top/bottom, flags, and triangles.',
       ],
       steps: [
-        { title: 'Choose a charting tool', detail: 'TradingView, Yahoo Finance, or your broker\'s platform all offer free charts.' },
+        { title: 'Choose a charting tool', detail: 'StockVisor, TradingView, Yahoo Finance, or your broker\'s platform all provide charts.' },
         { title: 'Identify the trend', detail: 'Is the stock making higher highs and higher lows (uptrend) or lower lows (downtrend)?' },
         { title: 'Draw support & resistance', detail: 'Mark the horizontal levels where price has repeatedly bounced or reversed.' },
         { title: 'Add a moving average', detail: 'The 50-day and 200-day MAs are popular trend filters.' },
@@ -145,12 +145,12 @@ export default function Tips() {
         'Widely used, so patterns can become self-fulfilling.',
       ],
       cons: [
-        'Subjective — different analysts can draw different conclusions from the same chart.',
+        'Different analysts can draw different conclusions from the same chart.',
         'Does not reflect a company\'s intrinsic value.',
         'Major news events can override any technical pattern instantly.',
       ],
       bottomNote:
-        'Technical analysis is a tool, not a crystal ball. Combine it with fundamental analysis and always use stop-loss orders to limit downside.',
+        'Technical analysis is a tool only so use it with fundamental analysis and always use stop-loss orders to limit downside.',
     },
     {
       id: 5,
@@ -179,7 +179,7 @@ export default function Tips() {
       pros: [
         'Prevents a single bad trade from wiping out weeks of gains.',
         'Removes emotion from exit decisions.',
-        'Scalable — works for any account size.',
+        'Works for any account size.',
       ],
       cons: [
         'Stop-losses can be triggered by brief intraday spikes ("stop hunts").',
@@ -199,8 +199,8 @@ export default function Tips() {
         'Fundamental analysis is the process of evaluating a company\'s intrinsic value by examining its financial statements, business model, competitive advantages, management quality, and macroeconomic environment. The goal is to determine whether the current market price is above or below what the company is actually worth.',
       keyPoints: [
         'Revenue and earnings growth are the primary drivers of long-term stock price.',
-        'Free cash flow (FCF) is often more reliable than reported earnings.',
-        'Debt levels: high debt amplifies risk; compare debt-to-equity across peers.',
+        'Free cash flow (FCF) is usually more reliable than reported earnings.',
+        'Debt levels: high debt amplifies risk, compare debt-to-equity across peers.',
         'Return on Equity (ROE) measures how efficiently management uses shareholders\' capital.',
         'Economic moat: sustainable competitive advantages that protect profitability.',
       ],
@@ -208,19 +208,19 @@ export default function Tips() {
         { title: 'Read the annual report (10-K)', detail: 'Study revenue trends, margins, debt levels, and management discussion sections.' },
         { title: 'Analyse the income statement', detail: 'Track revenue, gross profit, operating income, and net income over 5 years.' },
         { title: 'Review the balance sheet', detail: 'Check total assets vs. liabilities; look for rising goodwill or cash depletion.' },
-        { title: 'Study the cash flow statement', detail: 'Ensure operating cash flow consistently exceeds net income — a sign of earnings quality.' },
+        { title: 'Study the cash flow statement', detail: 'Make sure operating cash flow consistently exceeds net income.' },
         { title: 'Estimate intrinsic value', detail: 'Use a DCF (discounted cash flow) model or compare EV/EBITDA multiples to peers.' },
         { title: 'Assess qualitative factors', detail: 'Evaluate the competitive landscape, brand strength, regulatory risk, and management track record.' },
       ],
       example:
-        'Company X has grown revenue 20% annually for 5 years, generates $500M in FCF, has minimal debt, and trades at 18× FCF — below the sector average of 25×. A fundamental analyst might conclude it is undervalued relative to its growth rate.',
+        'Company X has grown revenue 20% annually for 5 years, generates $500M in FCF, has minimal debt, and trades at 18× FCF, below the sector average of 25×. A fundamental analyst might conclude it is undervalued relative to its growth rate.',
       pros: [
         'Identifies genuinely undervalued companies for long-term holding.',
         'Reduces risk of owning structurally weak businesses.',
         'Builds deep understanding of business quality.',
       ],
       cons: [
-        'Time-intensive — requires hours of research per company.',
+        'Requires hours of research per company.',
         'A stock can remain undervalued for years before the market agrees.',
         'Requires accounting knowledge to detect earnings manipulation.',
       ],
@@ -245,9 +245,9 @@ export default function Tips() {
   return (
     <div className="space-y-8">
       {/* Page Header */}
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Trading Tips &amp; Learning</h2>
-        <p className="text-slate-600 dark:text-gray-400">Master the essentials of stock trading and investing</p>
+      <div className="mb-4">
+        <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Trading Tutorials &amp; Learning</h2>
+        <span className="text-slate-600 dark:text-slate-400 mb-6 inline-block border-[#2ebd85] border-b-2">Master the essentials of stock trading and investing with these essential tutorials designed for new traders</span>
       </div>
 
       {selectedTip ? (
@@ -255,7 +255,7 @@ export default function Tips() {
       ) : (
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-[#2ebd85] overflow-hidden transition-colors duration-300">
           <div className="px-6 py-4 border-b border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-700">
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">All Tips</h3>
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">All Tutorials</h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 divide-y divide-slate-200 dark:divide-gray-700 md:divide-y-0">
             {tips.map((tip, index) => (

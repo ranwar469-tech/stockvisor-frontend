@@ -1,34 +1,53 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Chart } from "react-google-charts";
 import api from '../services/api';
-
-// 1. Theme colors for the Stock Market (Red to Green)
-export const options = {
-  minColor: "#b91c1c", // Deep Red
-  midColor: "#1f2937", // Dark Gray (Neutral)
-  maxColor: "#15803d", // Deep Green
-  headerHeight: 25,
-  headerColor: "#111827",
-  fontColor: "#d1d5db",
-  showScale: false,
-  // Customizing the tooltip to show Stock metrics
-  generateTooltip: (row, size, value) => {
-    // size was sqrt-compressed, so square it back for display
-    const realMcap = size * size;
-    return (
-      '<div style="background:#1f2937; padding:10px; border: 1px solid #374151; color: white; font-family: sans-serif;">' +
-      '<strong>' + row + '</strong><br/>' +
-      'Change: ' + value + '%<br/>' +
-      'Mcap: $' + (realMcap / 1e9).toFixed(1) + 'B' +
-      '</div>'
-    );
-  },
-};
 
 const StockHeatmap = ({ headerAction = null }) => {
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isDark, setIsDark] = useState(
+    document.documentElement.classList.contains('dark')
+  );
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const observer = new MutationObserver(() => {
+      setIsDark(root.classList.contains('dark'));
+    });
+
+    observer.observe(root, { attributes: true, attributeFilter: ['class'] });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  const options = useMemo(() => {
+    const tooltipBackground = isDark ? '#1f2937' : '#ffffff';
+    const tooltipBorder = isDark ? '#374151' : '#cbd5e1';
+    const tooltipText = isDark ? '#ffffff' : '#0f172a';
+
+    return {
+      minColor: '#b91c1c',
+      midColor: isDark ? '#1f2937' : '#e2e8f0',
+      maxColor: '#15803d',
+      headerHeight: 25,
+      headerColor: isDark ? '#111827' : '#f1f5f9',
+      fontColor: isDark ? '#d1d5db' : '#334155',
+      showScale: false,
+      generateTooltip: (row, size, value) => {
+        const realMcap = size * size;
+        return (
+          '<div style="background:' + tooltipBackground + '; padding:10px; border:1px solid ' + tooltipBorder + '; color:' + tooltipText + '; font-family:sans-serif;">' +
+          '<strong>' + row + '</strong><br/>' +
+          'Change: ' + value + '%<br/>' +
+          'Mcap: $' + (realMcap / 1e9).toFixed(1) + 'B' +
+          '</div>'
+        );
+      },
+    };
+  }, [isDark]);
 
   useEffect(() => {
     const fetchHeatmapData = async () => {
@@ -71,24 +90,24 @@ const StockHeatmap = ({ headerAction = null }) => {
   }, []);
 
   if (loading) return (
-    <div className="flex flex-col h-full w-full overflow-hidden bg-gray-900 p-3 rounded-xl border border-gray-800">
+    <div className="flex flex-col h-full w-full overflow-hidden bg-white dark:bg-gray-900 p-3 rounded-xl border border-[#2ebd85] dark:border-[#2ebd85]">
       <div className="flex items-center justify-between gap-3 mb-2 shrink-0">
         <div className="flex items-center gap-2">
-          <h2 className="text-white text-sm font-bold">Market Heatmap</h2>
+          <h2 className="text-slate-900 dark:text-white text-sm font-bold">Market Heatmap</h2>
           {headerAction}
         </div>
       </div>
       <div className="flex-1 min-h-0 w-full flex items-center justify-center">
-        <div className="text-blue-400 animate-pulse text-sm font-semibold">Loading Heatmap...</div>
+        <div className="text-[#2ebd85] animate-pulse text-sm font-semibold">Loading Heatmap...</div>
       </div>
     </div>
   );
 
   if (error) return (
-    <div className="flex flex-col h-full w-full overflow-hidden bg-gray-900 p-3 rounded-xl border border-gray-800">
+    <div className="flex flex-col h-full w-full overflow-hidden bg-white dark:bg-gray-900 p-3 rounded-xl border border-[#2ebd85] dark:border-[#2ebd85]">
       <div className="flex items-center justify-between gap-3 mb-2 shrink-0">
         <div className="flex items-center gap-2">
-          <h2 className="text-white text-sm font-bold">Market Heatmap</h2>
+          <h2 className="text-slate-900 dark:text-white text-sm font-bold">Market Heatmap</h2>
           {headerAction}
         </div>
       </div>
@@ -99,10 +118,10 @@ const StockHeatmap = ({ headerAction = null }) => {
   );
 
   return (
-    <div className="flex flex-col h-full w-full overflow-hidden bg-gray-900 p-3 rounded-xl border border-gray-800">
+    <div className="flex flex-col h-full w-full overflow-hidden bg-white dark:bg-gray-900 p-3 rounded-xl border border-[#2ebd85] dark:border-[#2ebd85]">
       <div className="flex justify-between items-center gap-3 mb-2 shrink-0">
         <div className="flex items-center gap-2">
-          <h2 className="text-white text-sm font-bold">Market Heatmap</h2>
+          <h2 className="text-slate-900 dark:text-white text-sm font-bold">Market Heatmap</h2>
           {headerAction}
         </div>
         <div className="flex items-center gap-2 text-[10px]">
@@ -115,11 +134,11 @@ const StockHeatmap = ({ headerAction = null }) => {
             />
             {/* Tick marks */}
             <div className="w-32 flex justify-between px-0.5">
-              <span className="w-px h-1 bg-gray-500" />
-              <span className="w-px h-1 bg-gray-500" />
-              <span className="w-px h-1 bg-gray-500" />
-              <span className="w-px h-1 bg-gray-500" />
-              <span className="w-px h-1 bg-gray-500" />
+              <span className="w-px h-1 bg-slate-400 dark:bg-gray-500" />
+              <span className="w-px h-1 bg-slate-400 dark:bg-gray-500" />
+              <span className="w-px h-1 bg-slate-400 dark:bg-gray-500" />
+              <span className="w-px h-1 bg-slate-400 dark:bg-gray-500" />
+              <span className="w-px h-1 bg-slate-400 dark:bg-gray-500" />
             </div>
           </div>
           <span className="text-green-400 font-medium">Gain</span>

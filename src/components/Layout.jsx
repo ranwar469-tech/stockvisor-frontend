@@ -154,8 +154,8 @@ function Layout() {
             </Link>
           </li>
           <li>
-            <Link to="/tips" className="hover:text-[#4cc99b] text-lg transition-colors font-medium text-slate-900 dark:text-white">
-              Tips
+            <Link to="/tutorials" className="hover:text-[#4cc99b] text-lg transition-colors font-medium text-slate-900 dark:text-white">
+              Tutorials
             </Link>
           </li>
           <li>

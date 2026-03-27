@@ -299,9 +299,9 @@ export default function Portfolio() {
   return (
     <div className="space-y-8">
       {/* Page Header */}
-      <div className="mb-8">
+      <div className="mb-4">
         <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Your Portfolio</h2>
-        <p className="text-slate-600 dark:text-gray-400">Track your investments and monitor daily performance</p>
+        <span className="text-slate-600 dark:text-slate-400 mb-6 inline-block border-[#2ebd85] border-b-2">Track your investments and monitor daily performance</span>
       </div>
 
       {/* Not logged in prompt */}

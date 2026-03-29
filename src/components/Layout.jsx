@@ -1,6 +1,6 @@
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from 'react';
-import { User, MoonIcon, Settings, LogOut, LogIn, Brain, Info } from 'lucide-react';
+import { User, MoonIcon, Settings, LogOut, LogIn, Brain, Info, Shield } from 'lucide-react';
 import { useTheme } from "../hooks/useTheme";
 import { useAuth } from "../context/AuthContext";
 import AIInsightsSidebar from './AIInsightsSidebar';
@@ -163,6 +163,14 @@ function Layout() {
               About
             </Link>
           </li>
+          {user?.role === 'admin' && (
+            <li>
+              <Link to="/admin" className="hover:text-[#4cc99b] text-lg transition-colors font-medium text-slate-900 dark:text-white inline-flex items-center gap-1.5">
+                <Shield className="w-4 h-4" />
+                Admin
+              </Link>
+            </li>
+          )}
         </ul>
       </nav>
 

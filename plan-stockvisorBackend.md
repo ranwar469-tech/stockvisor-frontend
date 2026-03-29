@@ -46,6 +46,7 @@ src/
     Portfolio.jsx
     Community.jsx
     DiscussionThread.jsx
+    AdminDashboard.jsx
     News.jsx
     Tips.jsx
     About.jsx
@@ -55,6 +56,7 @@ src/
   components/
     Layout.jsx
     ProtectedRoute.jsx
+    AdminRoute.jsx
     AnalystChart.jsx
     StockHeatmap.jsx
     StocksTable.jsx
@@ -84,12 +86,14 @@ app/
     discussion.py
   schemas/
     auth.py
+    admin.py
     portfolio.py
     stocks.py
     discussions.py
     insights.py
   routes/
     auth.py
+    admin.py
     portfolio.py
     watchlist.py
     stocks.py
@@ -107,6 +111,7 @@ app/
 - `App.jsx` defines route graph.
 - `/login` and `/register` are public auth pages.
 - Main app routes (`/`, `/portfolio`, `/community`, `/news`, `/tips`, `/about`, `/settings`) are rendered under `Layout.jsx`.
+- Admin route (`/admin`) is protected by `AdminRoute.jsx` and accessible only when `user.role === "admin"`.
 
 ### Global Service and State Layer
 - `services/api.js`
@@ -124,6 +129,7 @@ app/
 - `components/Layout.jsx`
   - Header, nav, footer.
   - User menu (about, login/logout, settings).
+  - Role-aware navbar link for admin users.
   - Theme switch.
   - Floating action button that opens `AIInsightsSidebar`.
 
@@ -140,8 +146,15 @@ app/
 - `pages/Community.jsx`
   - Renders `Discussion` list module.
   - Builds top contributor leaderboard by combining thread and post data.
+  - Supports admin manage mode UX entry from admin dashboard.
 - `pages/DiscussionThread.jsx`
   - Thread detail view, posting, deleting own posts/thread, like/unlike posts.
+  - Admin users can delete any thread or post through admin endpoints.
+- `pages/AdminDashboard.jsx`
+  - Admin-only control panel.
+  - Lists all users.
+  - Supports ban/unban and account deletion actions.
+  - Includes community moderation shortcut to `/community?adminManage=1`.
 - `pages/News.jsx`
   - Latest feed and saved articles tabs.
   - Save/unsave actions for authenticated users.
@@ -172,6 +185,7 @@ app/
 - `app/main.py`
   - Creates FastAPI app.
   - Creates DB tables on startup (`Base.metadata.create_all`).
+  - Applies lightweight schema safety check for missing `profiles.role` column in older databases.
   - Registers all routers.
   - CORS configured with broad allow settings (`*`).
 
@@ -189,6 +203,7 @@ app/
   - Uses OAuth2 bearer extraction.
   - Validates JWT via Supabase JWKS endpoint and ES256 signature.
   - Resolves authenticated user against local `profiles` table.
+  - Enforces admin-only access through `get_current_admin` dependency.
 
 ---
 
@@ -198,6 +213,7 @@ app/
 - `id` (Supabase user UUID)
 - `username` (unique)
 - `email` (unique)
+- `role` (`user` or `admin`)
 - `created_at`
 
 ### `holdings` (`models/portfolio.py`)
@@ -242,7 +258,17 @@ app/
 | GET | `/auth/me` | Returns current authenticated local profile |
 | PATCH | `/auth/profile` | Updates username and/or email |
 | PATCH | `/auth/password` | Verifies current password then updates password in Supabase |
-| DELETE | `/auth/account` | Deletes local holdings/watchlist/profile and then deletes Supabase user |
+| DELETE | `/auth/account` | Deletes local holdings/watchlist/saved news/discussion data/profile and then deletes Supabase user |
+
+### Admin (`/admin`)
+| Method | Endpoint | Behavior |
+|--------|----------|----------|
+| GET | `/admin/users` | Returns all local users with role and auth-provider ban status |
+| POST | `/admin/users/{user_id}/ban` | Bans a user via Supabase Admin API |
+| DELETE | `/admin/users/{user_id}/ban` | Removes an active ban via Supabase Admin API |
+| DELETE | `/admin/users/{user_id}` | Deletes a user account in Supabase and local app data |
+| DELETE | `/admin/threads/{thread_id}` | Admin deletes any community thread |
+| DELETE | `/admin/posts/{post_id}` | Admin deletes any community post |
 
 ### Stocks + News (`/stocks`)
 | Method | Endpoint | Behavior |
@@ -333,8 +359,16 @@ app/
 2. New thread -> `POST /discussions/threads`.
 3. Thread detail + posts -> `GET /discussions/threads/{id}`.
 4. New post -> `POST /discussions/threads/{id}/posts`.
-5. Delete permissions enforced by owner checks for threads/posts.
+5. Delete permissions use owner checks for normal users, and admin endpoints for moderators.
 6. Likes -> read/toggle post likes endpoints.
+
+### Admin flows
+1. Admin dashboard users table -> `GET /admin/users`.
+2. Ban user -> `POST /admin/users/{id}/ban`.
+3. Unban user -> `DELETE /admin/users/{id}/ban`.
+4. Delete user account -> `DELETE /admin/users/{id}`.
+5. Moderate community thread -> `DELETE /admin/threads/{id}`.
+6. Moderate community post -> `DELETE /admin/posts/{id}`.
 
 ### News flows
 1. Latest feed -> `GET /stocks/news`.
@@ -401,6 +435,9 @@ npm run dev
 - [ ] Stocks endpoints return quote/search/news/recommendation data.
 - [ ] Watchlist persists favorites for authenticated users.
 - [ ] Discussions support full thread/post/like lifecycle with ownership checks.
+- [ ] Role-aware navbar shows Admin for admin users only.
+- [ ] Admin dashboard loads user list and supports ban/unban/delete actions.
+- [ ] Admins can delete any thread and post from community flows.
 - [ ] News save/unsave works per user account.
 - [ ] AI insights and alerts endpoints return valid inference payloads.
 
@@ -410,6 +447,7 @@ npm run dev
 
 - Supabase is the source of auth truth, while backend stores local profile and domain data.
 - Bearer token validation is done against Supabase JWKS using ES256.
+- Role-based authorization is enforced using local `profiles.role` plus route-level admin guards.
 - SQLAlchemy models are auto-created at app startup for fast local iteration.
 - Market and portfolio valuations are enriched at request-time from yfinance.
 - News and analyst recommendations come from Finnhub.
@@ -422,6 +460,7 @@ npm run dev
 
 - Add robust automated tests under `stockvisor-backend/tests`.
 - Tighten CORS `allow_origins` for production.
+- Add server-side audit logs for admin moderation actions (ban/unban/delete).
 - Add API-level caching/rate-limit handling for yfinance/Finnhub/Hugging Face calls.
 - Add structured logging and centralized error telemetry.
 - Add migration tooling (Alembic) instead of create-all-on-start for production schema control.

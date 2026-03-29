@@ -10,6 +10,8 @@ import Tips from "./pages/Tips";
 import AccountSettings from "./pages/AccountSettings";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminRoute from "./components/AdminRoute";
 import { useTheme } from "./hooks/useTheme";
 
 function App() {
@@ -32,6 +34,14 @@ function App() {
         <Route path="news" element={<News />} />
         <Route path="tutorials" element={<Tips />} />
         <Route path="settings" element={<AccountSettings />} />
+        <Route
+          path="admin"
+          element={(
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
+          )}
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

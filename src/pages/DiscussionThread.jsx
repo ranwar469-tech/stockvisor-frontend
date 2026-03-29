@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 
 export default function DiscussionThread() {
   const { isAuthenticated, user } = useAuth();
+  const isAdmin = (user?.role || 'user') === 'admin';
   const navigate = useNavigate();
   const { threadId } = useParams();
 
@@ -105,14 +106,21 @@ export default function DiscussionThread() {
   };
 
   const handleDeleteThread = async () => {
-    if (!thread || !user?.id || String(thread.created_by) !== String(user.id)) return;
+    if (!thread) return;
+
+    const isThreadOwner = Boolean(user?.id) && String(thread.created_by) === String(user.id);
+    if (!isThreadOwner && !isAdmin) return;
+
     const confirmed = window.confirm('Delete this thread? This cannot be undone.');
     if (!confirmed) return;
 
     setDeletingThread(true);
     setError('');
     try {
-      await api.delete(`/discussions/threads/${thread.id}`);
+      const endpoint = isAdmin
+        ? `/admin/threads/${thread.id}`
+        : `/discussions/threads/${thread.id}`;
+      await api.delete(endpoint);
       navigate('/community');
     } catch (err) {
       const msg = err.response?.data?.detail || 'Failed to delete thread.';
@@ -124,14 +132,21 @@ export default function DiscussionThread() {
   };
 
   const handleDeletePost = async (postId, postUserId) => {
-    if (!postId || !user?.id || String(postUserId) !== String(user.id)) return;
+    if (!postId) return;
+
+    const isPostOwner = Boolean(user?.id) && String(postUserId) === String(user.id);
+    if (!isPostOwner && !isAdmin) return;
+
     const confirmed = window.confirm('Delete this post?');
     if (!confirmed) return;
 
     setDeletingPostId(postId);
     setPostError('');
     try {
-      await api.delete(`/discussions/posts/${postId}`);
+      const endpoint = isAdmin
+        ? `/admin/posts/${postId}`
+        : `/discussions/posts/${postId}`;
+      await api.delete(endpoint);
       setOpenPostMenuId(null);
       await fetchThread();
     } catch (err) {
@@ -183,6 +198,7 @@ export default function DiscussionThread() {
   const posts = Array.isArray(thread?.posts) ? thread.posts : [];
   const participants = Array.isArray(thread?.participating_users) ? thread.participating_users.length : 0;
   const currentUserId = String(user?.id || '');
+  const canManageThread = Boolean(thread) && (String(thread.created_by) === currentUserId || isAdmin);
 
   const formatAuthorName = (authorId, username) => {
     const idValue = String(authorId || '').trim();
@@ -238,7 +254,7 @@ export default function DiscussionThread() {
                   {thread.category}
                 </span>
 
-                {String(thread.created_by) === String(user?.id) && (
+                {canManageThread && (
                   <div className="relative">
                     <button
                       type="button"
@@ -262,7 +278,7 @@ export default function DiscussionThread() {
                           ) : (
                             <Trash2 className="w-4 h-4" />
                           )}
-                          Delete
+                          {isAdmin && String(thread.created_by) !== currentUserId ? 'Delete (Admin)' : 'Delete'}
                         </button>
                       </div>
                     )}
@@ -299,7 +315,7 @@ export default function DiscussionThread() {
                         {new Date(post.created_at).toLocaleString()}
                       </p>
 
-                      {String(post.user_id) === String(user?.id) && (
+                      {(String(post.user_id) === currentUserId || isAdmin) && (
                         <div className="relative">
                           <button
                             type="button"
@@ -323,7 +339,7 @@ export default function DiscussionThread() {
                                 ) : (
                                   <Trash2 className="w-4 h-4" />
                                 )}
-                                Delete
+                                {isAdmin && String(post.user_id) !== currentUserId ? 'Delete (Admin)' : 'Delete'}
                               </button>
                             </div>
                           )}

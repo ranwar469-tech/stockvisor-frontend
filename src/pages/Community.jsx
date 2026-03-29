@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Users, Trophy, RefreshCw } from 'lucide-react';
 import Discussion from '../components/Discussion';
 import api from '../services/api';
@@ -6,10 +7,12 @@ import { useAuth } from '../context/AuthContext';
 
 export default function Community() {
   const { isAuthenticated, user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [topUsers, setTopUsers] = useState([]);
   const [myContribution, setMyContribution] = useState(null);
   const [contributorsLoading, setContributorsLoading] = useState(false);
   const [contributorsError, setContributorsError] = useState('');
+  const adminManageMode = (user?.role || 'user') === 'admin' && searchParams.get('adminManage') === '1';
 
   const fetchTopContributors = useCallback(async () => {
     if (!isAuthenticated) {
@@ -115,6 +118,12 @@ export default function Community() {
         <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Community</h2>
         <span className="text-slate-600 dark:text-slate-400 mb-6 inline-block border-[#2ebd85] border-b-2">Connect with traders and share investment insights</span>
       </div>
+
+      {adminManageMode && (
+        <div className="rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-700 px-4 py-3 text-sm text-amber-800 dark:text-amber-300">
+          Admin manage mode is active. You can delete any thread or post from the community views.
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Discussions */}

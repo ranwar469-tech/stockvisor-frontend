@@ -9,6 +9,7 @@ const INITIAL_DISCUSSION_FORM = { category: '', title: '' };
 export default function Discussion() {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  const isAdmin = (user?.role || 'user') === 'admin';
 
   const [threads, setThreads] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -83,14 +84,22 @@ export default function Discussion() {
   };
 
   const handleDeleteThread = async (threadId, createdById) => {
-    if (!threadId || !user?.id || String(createdById) !== String(user.id)) return;
+    if (!threadId) return;
+
+    const canDeleteOwn = Boolean(user?.id) && String(createdById) === String(user.id);
+    if (!canDeleteOwn && !isAdmin) return;
+
     const confirmed = window.confirm('Delete this thread? This cannot be undone.');
     if (!confirmed) return;
 
     setDeletingThreadId(threadId);
     setError('');
     try {
-      await api.delete(`/discussions/threads/${threadId}`);
+      const endpoint = isAdmin
+        ? `/admin/threads/${threadId}`
+        : `/discussions/threads/${threadId}`;
+
+      await api.delete(endpoint);
       setThreads((prev) => prev.filter((thread) => thread.id !== threadId));
       setOpenThreadMenuId(null);
     } catch (err) {
@@ -162,7 +171,8 @@ export default function Discussion() {
           <div className="divide-y divide-slate-200 dark:divide-gray-700">
             {threads.map((thread) => {
               const participants = Array.isArray(thread.participating_users) ? thread.participating_users.length : 0;
-              const isCurrentUser = user?.id && thread.created_by === user.id;
+              const isCurrentUser = Boolean(user?.id) && String(thread.created_by) === String(user.id);
+              const canManageThread = isCurrentUser || isAdmin;
               const authorLabel = isCurrentUser
                 ? (user?.username || thread.created_by_username || 'You')
                 : (thread.created_by_username || thread.created_by);
@@ -197,7 +207,7 @@ export default function Discussion() {
                         </div>
                       </div>
 
-                      {isCurrentUser && (
+                      {canManageThread && (
                         <div className="relative" onClick={(e) => e.stopPropagation()}>
                           <button
                             type="button"
@@ -221,7 +231,7 @@ export default function Discussion() {
                                 ) : (
                                   <Trash2 className="w-4 h-4" />
                                 )}
-                                Delete
+                                {isAdmin && !isCurrentUser ? 'Delete (Admin)' : 'Delete'}
                               </button>
                             </div>
                           )}

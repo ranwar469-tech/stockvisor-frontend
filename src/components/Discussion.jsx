@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageSquare, Users, Plus, X, RefreshCw, MoreVertical, Trash2 } from 'lucide-react';
+import { MessageSquare, Users, Plus, X, RefreshCw, MoreVertical, Trash2, Flag } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -21,6 +21,12 @@ export default function Discussion() {
   const [createError, setCreateError] = useState('');
   const [openThreadMenuId, setOpenThreadMenuId] = useState(null);
   const [deletingThreadId, setDeletingThreadId] = useState(null);
+  const [reportingThreadId, setReportingThreadId] = useState(null);
+  const [reportFeedback, setReportFeedback] = useState('');
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportThreadId, setReportThreadId] = useState(null);
+  const [reportReason, setReportReason] = useState('');
+  const [reportDetails, setReportDetails] = useState('');
 
   const fetchThreads = useCallback(async () => {
     if (!isAuthenticated) {
@@ -110,6 +116,58 @@ export default function Discussion() {
     }
   };
 
+  const resetReportModal = () => {
+    setShowReportModal(false);
+    setReportThreadId(null);
+    setReportReason('');
+    setReportDetails('');
+  };
+
+  const handleReportThread = (threadId, createdById) => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    const isOwnThread = Boolean(user?.id) && String(createdById) === String(user.id);
+    if (isOwnThread) {
+      setReportFeedback('You cannot report your own thread.');
+      return;
+    }
+
+    setReportFeedback('');
+    setReportThreadId(threadId);
+    setReportReason('');
+    setReportDetails('');
+    setShowReportModal(true);
+  };
+
+  const handleSubmitThreadReport = async () => {
+    const reason = reportReason.trim();
+    if (!reason) {
+      setReportFeedback('Report reason is required.');
+      return;
+    }
+
+    const details = reportDetails.trim();
+
+    setReportingThreadId(reportThreadId);
+    setReportFeedback('');
+    try {
+      await api.post(`/discussions/threads/${reportThreadId}/reports`, {
+        reason,
+        details: details || undefined,
+      });
+      setReportFeedback('Thread reported successfully. Our admins will review it.');
+      resetReportModal();
+    } catch (err) {
+      const msg = err.response?.data?.detail || 'Failed to submit report.';
+      setReportFeedback(typeof msg === 'string' ? msg : 'Failed to submit report.');
+    } finally {
+      setReportingThreadId(null);
+    }
+  };
+
   return (
     <>
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-[#2ebd85] overflow-hidden transition-colors duration-300">
@@ -196,6 +254,26 @@ export default function Discussion() {
                       </p>
                     </div>
                     <div className="ml-4 flex items-start gap-2">
+                      {!isCurrentUser && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleReportThread(thread.id, thread.created_by);
+                          }}
+                          disabled={reportingThreadId === thread.id}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold text-amber-700 bg-amber-100 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:hover:bg-amber-900/50 transition-colors disabled:opacity-60"
+                          title="Report thread"
+                        >
+                          {reportingThreadId === thread.id ? (
+                            <RefreshCw className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <Flag className="w-3 h-3" />
+                          )}
+                          Report
+                        </button>
+                      )}
+
                       <div className="text-right space-y-1">
                         <div className="flex items-center justify-end gap-1 text-[#2ebd85]">
                           <MessageSquare className="w-4 h-4" />
@@ -248,6 +326,12 @@ export default function Discussion() {
 
       {error && threads.length > 0 && (
         <div className="mt-2 text-sm text-rose-500">{error}</div>
+      )}
+
+      {reportFeedback && (
+        <div className={`mt-2 text-sm ${reportFeedback.toLowerCase().includes('failed') || reportFeedback.toLowerCase().includes('required') ? 'text-rose-500' : 'text-[#2ebd85]'}`}>
+          {reportFeedback}
+        </div>
       )}
 
       {showDiscussionModal && (
@@ -305,6 +389,61 @@ export default function Discussion() {
                   className="flex-1 px-4 py-2 bg-[#2ebd85] hover:bg-[#26a070] disabled:opacity-60 text-white rounded-lg transition-colors flex items-center justify-center"
                 >
                   {createLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'Create'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showReportModal && (
+        <div className="fixed inset-0 bg-transparent bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200 dark:border-gray-700">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">Report Thread</h3>
+              <button
+                onClick={resetReportModal}
+                className="p-1 rounded transition-colors hover:bg-slate-100 dark:hover:bg-gray-700"
+              >
+                <X className="w-5 h-5 text-slate-600 dark:text-gray-400" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-600 dark:text-gray-400 mb-2">Reason</label>
+                <input
+                  type="text"
+                  placeholder="Why are you reporting this thread?"
+                  value={reportReason}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  className="w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 border-slate-300 dark:border-gray-600 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2ebd85]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-600 dark:text-gray-400 mb-2">Additional details (optional)</label>
+                <textarea
+                  placeholder="Add more context for moderators"
+                  value={reportDetails}
+                  onChange={(e) => setReportDetails(e.target.value)}
+                  rows={4}
+                  className="w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 border-slate-300 dark:border-gray-600 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2ebd85] resize-none"
+                />
+              </div>
+
+              <div className="flex space-x-3 pt-2">
+                <button
+                  onClick={resetReportModal}
+                  className="flex-1 px-4 py-2 rounded-lg transition-colors bg-slate-200 dark:bg-gray-700 text-slate-900 dark:text-white hover:bg-slate-300 dark:hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSubmitThreadReport}
+                  disabled={reportingThreadId === reportThreadId}
+                  className="flex-1 px-4 py-2 bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-white rounded-lg transition-colors flex items-center justify-center"
+                >
+                  {reportingThreadId === reportThreadId ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'Submit Report'}
                 </button>
               </div>
             </div>

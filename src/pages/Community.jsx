@@ -199,7 +199,7 @@ export default function Community() {
             )}
 
             {isAuthenticated && topUsers.length > 0 && (
-              <div className="divide-y divide-slate-200 dark:divide-gray-700">
+              <div className="max-h-112 overflow-y-auto divide-y divide-slate-200 dark:divide-gray-700">
               {topUsers.map((user, index) => (
                 <div key={user.id} className="px-6 py-4 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors">
                   <div className="flex items-center gap-3">
@@ -208,14 +208,17 @@ export default function Community() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-slate-900 dark:text-white">{user.name}</p>
-                      <div className="flex items-center gap-3 mt-1">
+                      <div className="flex items-center gap-3 mt-1 flex-wrap">
                         <span className="flex items-center gap-1 text-[#2ebd85] text-xs font-semibold">
                           <Trophy className="w-3 h-3" />
                           {user.points} pts
                         </span>
+                        <span className="text-xs text-slate-500 dark:text-gray-400">
+                          {user.threads} thread{user.threads !== 1 ? 's' : ''}
+                        </span>
                         <span className="flex items-center gap-1 text-slate-600 dark:text-gray-400 text-xs">
                           <Users className="w-3 h-3" />
-                          {user.posts} posts
+                          {user.posts} post{user.posts !== 1 ? 's' : ''}
                         </span>
                       </div>
                     </div>

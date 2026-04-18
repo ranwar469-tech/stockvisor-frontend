@@ -4,6 +4,44 @@ import TipsComponent from '../components/TipsComponent';
 export default function Tips() {
   const [selectedTip, setSelectedTip] = useState(null);
 
+  const influencerPlaceholders = [
+    {
+      id: 1,
+      name: 'Chamath Palihapitiya',
+      description: 'Canadian-American venture capitalist and Virgin Galactic Chairman Chamath Palihapitiya has 1.4 million Twitter followers and regularly shares his thoughts about what’s happening on the markets.',
+      handle: 'https://x.com/chamath',
+      thumbnailLink: 'https://pbs.twimg.com/profile_images/1883600182165848064/-9LbG3md_400x400.jpg',
+    },
+    {
+      id: 2,
+      name: 'Cathie Wood',
+      description: 'Cathie Wood of ARK Invest is quickly developing a following as one of the most influential “stock pickers” out there, earning comparisons to Warren Buffet. Wood praised companies like Musk’s Tesla for buying Bitcoin as a hedge and is a longtime fan of the electric-car company.',
+      handle: 'https://x.com/CathieDWood',
+      thumbnailLink: 'https://pbs.twimg.com/profile_images/1782845672829423617/xuyhQIY5_400x400.jpg',
+    },
+    {
+      id: 3,
+      name: 'Dave Portnoy',
+      description: 'Since the start of the pandemic, Barstool Sports founder Dave Portnoy has shifted from talking about sports to his 2.4 million Twitter followers to discussing the stock market. His Twitter feed these days tends to focus on his trading, which he often streams live to his millions of fans. Portnoy has pushed everything from sports gambling businesses to cannabis stocks to his legions of followers.',
+      handle: 'https://x.com/stoolpresidente',
+      thumbnailLink: 'https://pbs.twimg.com/profile_images/2031028919751573504/m_4Tu1Hv_400x400.jpg',
+    },
+    {
+      id: 4,
+      name: 'Brian Feroldi',
+      description: 'Focuses heavily on educational content, breaking down financial statements and business models. His career mission statement is “to demystify the stock market.” He loves to help other people do better with their investments. He has written over 3,000 articles on stocks, investing, and personal finance for the Motley Fool.',
+      handle: 'https://x.com/BrianFeroldi',
+      thumbnailLink: 'https://pbs.twimg.com/profile_images/1758167079843172352/I87PB0PH_400x400.jpg',
+    },
+    {
+      id: 5,
+      name: 'Morgan Housel',
+      description: 'Author and researcher known for his psychological approach to investing. Morgan Housel is a partner at the Collaborative Fund. He is a two-time winner of the Best in Business Award from the Society of American Business Editors and Writers, winner of the New York Times Sidney Award, and a two-time finalist for the Gerald Loeb Award for Distinguished Business and Financial Journalism.',
+      handle: 'https://x.com/morganhousel?lang=en',
+      thumbnailLink: 'https://pbs.twimg.com/profile_images/1801821925414735875/O1lzFjAw_400x400.jpg',
+    },
+  ];
+
   const tips = [
     {
       id: 1,
@@ -253,38 +291,92 @@ export default function Tips() {
       {selectedTip ? (
         <TipsComponent tip={selectedTip} onClose={() => setSelectedTip(null)} />
       ) : (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-[#2ebd85] overflow-hidden transition-colors duration-300">
-          <div className="px-6 py-4 border-b border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-700">
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">All Tutorials</h3>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 divide-y divide-slate-200 dark:divide-gray-700 md:divide-y-0">
-            {tips.map((tip, index) => (
-              <div
-                key={tip.id}
-                className={`p-6 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors cursor-pointer ${
-                  index % 3 !== 2 ? 'md:border-r border-slate-200 dark:border-gray-700' : ''
-                } ${
-                  index < 3 ? 'lg:border-b border-slate-200 dark:border-gray-700' : ''
-                }`}
-              >
-                <div className="text-3xl mb-4">{tip.icon}</div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">{tip.title}</h3>
-                <p className="text-slate-600 dark:text-gray-400 text-sm leading-relaxed mb-4">
-                  {tip.description}
-                </p>
-                <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-gray-700">
-                  <span className={`px-2 py-1 rounded text-xs font-semibold ${getDifficultyClasses(tip.difficulty)}`}>
-                    {tip.difficulty}
-                  </span>
-                  <span
-                    onClick={() => setSelectedTip(tip)}
-                    className="text-[#2ebd85] text-sm font-semibold hover:text-[#35cc8e] cursor-pointer"
-                  >
-                    Learn More →
-                  </span>
+        <div className="space-y-8">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-[#2ebd85] overflow-hidden transition-colors duration-300">
+            <div className="px-6 py-4 border-b border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-700">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">All Tutorials</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 divide-y divide-slate-200 dark:divide-gray-700 md:divide-y-0">
+              {tips.map((tip, index) => (
+                <div
+                  key={tip.id}
+                  className={`p-6 hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors cursor-pointer ${
+                    index % 3 !== 2 ? 'md:border-r border-slate-200 dark:border-gray-700' : ''
+                  } ${
+                    index < 3 ? 'lg:border-b border-slate-200 dark:border-gray-700' : ''
+                  }`}
+                >
+                  <div className="text-3xl mb-4">{tip.icon}</div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">{tip.title}</h3>
+                  <p className="text-slate-600 dark:text-gray-400 text-sm leading-relaxed mb-4">
+                    {tip.description}
+                  </p>
+                  <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-gray-700">
+                    <span className={`px-2 py-1 rounded text-xs font-semibold ${getDifficultyClasses(tip.difficulty)}`}>
+                      {tip.difficulty}
+                    </span>
+                    <span
+                      onClick={() => setSelectedTip(tip)}
+                      className="text-[#2ebd85] text-sm font-semibold hover:text-[#35cc8e] cursor-pointer"
+                    >
+                      Learn More →
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-[#2ebd85] overflow-hidden transition-colors duration-300">
+            <div className="px-6 py-4 border-b border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-700">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Recommended Stock Market Influencers</h3>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-slate-50 dark:bg-gray-700/60 border-b border-slate-200 dark:border-gray-700">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-black dark:text-yellow-300 uppercase tracking-wider"></th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-black dark:text-yellow-300 uppercase tracking-wider">Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-black dark:text-yellow-300 uppercase tracking-wider">Description</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-black dark:text-yellow-300 uppercase tracking-wider">Handle</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 dark:divide-gray-700">
+                  {influencerPlaceholders.map((influencer) => (
+                    <tr key={influencer.id} className="hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="h-11 w-11 min-h-11 min-w-11 rounded-full overflow-hidden border border-[#2ebd85] bg-[#edfaf4] dark:bg-[#114832]/30">
+                          <img
+                            src={influencer.thumbnailLink}
+                            alt={`${influencer.name} profile`}
+                            className="block h-full w-full object-cover object-center"
+                            loading="lazy"
+                            referrerPolicy="no-referrer"
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(influencer.name)}&background=edfaf4&color=2ebd85&size=128`;
+                            }}
+                          />
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm font-semibold text-slate-900 dark:text-white">{influencer.name}</td>
+                      <td className="px-6 py-4 text-sm text-slate-600 dark:text-gray-400">{influencer.description}</td>
+                      <td className="px-6 py-4 text-sm text-[#2ebd85] font-semibold">
+                        <a
+                          href={influencer.handle}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline"
+                        >
+                          {influencer.handle}
+                        </a>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

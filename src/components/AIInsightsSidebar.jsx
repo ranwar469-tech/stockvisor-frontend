@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { X, TrendingUp, TrendingDown, Brain, BarChart2, AlertTriangle, RefreshCw } from 'lucide-react';
+import { X, TrendingUp, TrendingDown, Brain, BarChart2, AlertTriangle, RefreshCw, Info } from 'lucide-react';
 import api from '../services/api';
+import TutorialPopup from './TutorialPopup';
 
 const MARKET_INDEX_CONFIG = [
   { name: 'S&P 500', symbol: 'SPY' },
@@ -22,6 +23,59 @@ const DEFAULT_ALERTS = ALERT_KEYS.map(() => ({
   text: 'Fetching latest alerts...',
   type: 'positive',
 }));
+
+const AI_INSIGHTS_TUTORIALS = {
+  aiMarketOverview: {
+    badge: 'AI insights guide',
+    title: 'Market Overview',
+    summary:
+      'This section tracks market indices so you can quickly assess overall risk-on or risk-off direction before diving into individual stocks. Market ',
+    steps: [
+      'Read index values f to understand broad market positioning.',
+      'Use the percentage chip to spot which indices are leading gains or losses today.',
+      'Treat VIX spikes as a sign of increasing market stress or uncertainty.',
+    ],
+    tip: 'If equities are mixed but VIX is climbing fast, short-term volatility risk is usually elevated.',
+  },
+  aiSentimentAnalysis: {
+    badge: 'AI insights guide',
+    title: 'AI Sentiment Analysis',
+    summary:
+      'This section summarizes model-driven sentiment by sector and converts classifier confidence into an easy-to-read score bar.',
+    steps: [
+      'Read the sentiment label first: Bullish, Neutral, or Bearish.',
+      'Use the bar fill length as confidence, where higher percentages mean stronger model conviction.',
+      'Refresh when needed to fetch the latest sentiment output for each sector.',
+    ],
+    tip: 'Use sentiment as context, not confirmation. Combine it with price trend and news catalysts.',
+  },
+  aiAlerts: {
+    badge: 'AI insights guide',
+    title: 'AI Alerts',
+    summary:
+      'This section surfaces short, generated market signals and classifies each message as positive, warning, or negative for quick triage.',
+    steps: [
+      'Scan alert color and wording to prioritize what needs attention first.',
+      'Refresh alerts to request the newest generated summaries.',
+      'Cross-check alerts against charts or news before taking action.',
+    ],
+    tip: 'Alerts are directional hints. Validate with your own analysis before making portfolio decisions.',
+  },
+};
+
+function TutorialInfoButton({ label, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:border-[#2ebd85] hover:text-[#2ebd85] dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-[#2ebd85] dark:hover:text-[#4cc99b]"
+      title={`Open tutorial for ${label}`}
+      aria-label={`Open tutorial for ${label}`}
+    >
+      <Info className="h-3.5 w-3.5" />
+    </button>
+  );
+}
 
 function SentimentBar({ score, sentiment }) {
   const color =
@@ -48,6 +102,7 @@ function ChangeChip({ change }) {
 }
 
 export default function AIInsightsSidebar({ open, onClose }) {
+  const [activeTutorialKey, setActiveTutorialKey] = useState(null);
   const [marketIndices, setMarketIndices] = useState(
     MARKET_INDEX_CONFIG.map((item) => ({ ...item, value: '--', change: 0 }))
   );
@@ -101,6 +156,10 @@ export default function AIInsightsSidebar({ open, onClose }) {
   useEffect(() => {
     fetchAiAlerts();
   }, []);
+
+  useEffect(() => {
+    fetchSectorSentiments();
+  },[]);
 
   useEffect(() => {
     if (!open) return;
@@ -204,6 +263,14 @@ export default function AIInsightsSidebar({ open, onClose }) {
     await fetchAiAlerts();
   };
 
+  const openTutorial = (tutorialKey) => {
+    setActiveTutorialKey(tutorialKey);
+  };
+
+  const closeTutorial = () => {
+    setActiveTutorialKey(null);
+  };
+
   return (
     <>
       {/* Backdrop */}
@@ -239,9 +306,15 @@ export default function AIInsightsSidebar({ open, onClose }) {
 
           {/* ── Market Overview ── */}
           <section>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-gray-400 mb-2 flex items-center gap-1.5">
-              <BarChart2 className="w-3.5 h-3.5" /> Market Overview
-            </h3>
+            <div className="mb-2 flex items-center gap-1.5">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-gray-400 flex items-center gap-1.5">
+                <BarChart2 className="w-3.5 h-3.5" /> Market Overview
+              </h3>
+              <TutorialInfoButton
+                label="market overview"
+                onClick={() => openTutorial('aiMarketOverview')}
+              />
+            </div>
             <div className="space-y-2">
               {marketIndices.map((idx) => (
                 <div
@@ -261,11 +334,17 @@ export default function AIInsightsSidebar({ open, onClose }) {
           {/* ── AI Sentiment Analysis ── */}
           <section>
             <div className="mb-2 flex items-center justify-between">
-              <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-gray-400 flex items-center gap-1.5">
-                  <Brain className="w-3.5 h-3.5" /> AI Sentiment Analysis
-                </h3>
-                <p className="text-[11px] text-slate-500 dark:text-gray-400 mt-0.5">May take a few seconds to load</p>
+              <div className="flex items-start gap-2">
+                <div>
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-gray-400 flex items-center gap-1.5">
+                    <Brain className="w-3.5 h-3.5" /> AI Sentiment Analysis
+                  </h3>
+                  <p className="text-[11px] text-slate-500 dark:text-gray-400 mt-0.5">May take a few seconds to load</p>
+                </div>
+                <TutorialInfoButton
+                  label="AI sentiment analysis"
+                  onClick={() => openTutorial('aiSentimentAnalysis')}
+                />
               </div>
               <button
                 type="button"
@@ -298,9 +377,15 @@ export default function AIInsightsSidebar({ open, onClose }) {
           {/* ── AI Alerts ── */}
           <section>
             <div className="mb-2 flex items-center justify-between">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-gray-400 flex items-center gap-1.5">
-                <AlertTriangle className="w-3.5 h-3.5" /> AI Alerts
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-gray-400 flex items-center gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5" /> AI Alerts
+                </h3>
+                <TutorialInfoButton
+                  label="AI alerts"
+                  onClick={() => openTutorial('aiAlerts')}
+                />
+              </div>
               <button
                 type="button"
                 onClick={handleAlertsRefresh}
@@ -335,6 +420,14 @@ export default function AIInsightsSidebar({ open, onClose }) {
           </p>
         </div>
       </aside>
+
+      <TutorialPopup
+        isOpen={Boolean(activeTutorialKey)}
+        tutorialKey={activeTutorialKey}
+        tutorials={AI_INSIGHTS_TUTORIALS}
+        allowVideo={false}
+        onClose={closeTutorial}
+      />
     </>
   );
 }

@@ -4,7 +4,7 @@ import { TrendingUp, TrendingDown, Star, RefreshCw, Search, X } from 'lucide-rea
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
-const WATCHLIST_SYMBOLS = ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'TSLA', 'NVDA', 'META', 'NFLX'];
+const WATCHLIST_SYMBOLS = ['AAPL', 'GOOGL','XOM','JPM','CVX','JNJ','MSFT','MRK','AMZN','BAC','COP', 'TSLA', 'NVDA', 'META', 'NFLX'];
 
 function formatVolume(vol) {
   if (vol >= 1_000_000_000) return (vol / 1_000_000_000).toFixed(1) + 'B';

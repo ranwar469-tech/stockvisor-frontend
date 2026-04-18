@@ -3,7 +3,7 @@ import { BookOpen, X, PlayCircle } from 'lucide-react';
 
 export const DEFAULT_TUTORIALS = {
   analystChart: {
-    videoUrl: 'https://drive.google.com/file/d/18P1prtAJymIvuhvHZy_LDf-EH_-_TCZF/view?usp=drive_link',
+    videoUrl: 'https://drive.google.com/file/d/1X7JZJ_3I1IwBihmhng_oVmSL7RRx6vwn/view?usp=drive_link',
     badge: 'Dashboard guide',
     title: 'Expert Analysis',
     summary:
@@ -15,21 +15,22 @@ export const DEFAULT_TUTORIALS = {
     tip: 'A high Buy count is a useful recommendation, but it should still be compared with price action, earnings, and market conditions.',
   },
   stockHeatmap: {
-    videoUrl: 'https://drive.google.com/file/d/1WRcZbmycH3cjZ4PtyKT8eIdf_Uv-hnn8/view?usp=drive_link',
+    videoUrl: 'https://drive.google.com/file/d/1FF3pTbjhTBF9odqH6taNc6A7gJHVI49O/view?usp=drive_link',
     badge: 'Dashboard guide',
     title: 'Market Heatmap',
     summary:
       'The heatmap groups stocks by sector and colors them according to changes in the current price vs previous day closing price. Its good to view market conditions with a quick glance.',
     steps: [
-      'Look at the color scale first: red shows losses, gray is neutral, and green shows gains. The change percentage indicates how much the sector/stock price changed vs the previous day closing price',
+      'Look at the color scale first: red shows losses, gray is neutral, and green shows gains.',
+      'Hover your mouse over a tile to see the change percentage, indicating how much the sector/stock price changed vs the previous day closing price',
       'Focus on larger tiles when you want to identify the highest market-cap names driving sector movement.',
-      'Click on the larger tiles to see the performance of top stocks in each sector. Right click to view the larger tiles again.',
+      'Click on the larger tiles to see the performance of top stocks in each sector. Right click to go back to the larger sector tiles again.',
       'Compare clusters of tiles by sector to find concentrated strength, weakness, or rotation.',
     ],
     tip: 'A sector full of green tiles can indicate short-term momentum, but it does not guarantee the move will continue.',
   },
   stocksTable: {
-    videoUrl: 'https://drive.google.com/file/d/1Xyi1G-finLinNDcJ4Q9ndaETeOSFKDlH/view?usp=drive_link',
+    videoUrl: 'https://drive.google.com/file/d/14bTGRBTFow1K9CKN0lLUd6O_mP9AYS67/view?usp=drive_link',
     badge: 'Dashboard guide',
     title: 'Popular Stocks Table',
     summary:
@@ -42,7 +43,7 @@ export const DEFAULT_TUTORIALS = {
     tip: 'Favorites work best when you keep them limited to the stocks you genuinely monitor every day.',
   },
   areaChartPortfolio: {
-    videoUrl: 'https://drive.google.com/file/d/1vSeuzO13JQbmejrv-ksdlUseKczTjmE_/view?usp=drive_link',
+    videoUrl: 'https://drive.google.com/file/d/1KqL6WBjZWlPRH-d_rBisCe6ThOgEJPoS/view?usp=drive_link',
     badge: 'Portfolio guide',
     title: 'Portfolio Cost vs Market Value',
     summary:
@@ -56,7 +57,7 @@ export const DEFAULT_TUTORIALS = {
     tip: 'This chart is best for judging overall portfolio progress, not the performance of a single stock.',
   },
   portfolioRadarChart: {
-    videoUrl: 'https://drive.google.com/file/d/1kcWb_M5ikEg3FG_FDkB6JdOglwwYmGuH/view?usp=drive_link',
+    videoUrl: 'https://drive.google.com/file/d/1URzYG_7wYUoQa0y45beCc-dCeQEiBZMG/view?usp=drive_link',
     badge: 'Portfolio guide',
     title: 'Sector Allocation',
     summary:
@@ -70,7 +71,7 @@ export const DEFAULT_TUTORIALS = {
     tip: 'A stretched radar shape usually means your portfolio depends more heavily on a small number of sectors.',
   },
   holdings: {
-    videoUrl: 'https://drive.google.com/file/d/1iYxahuuQEG0OhCiPHxJYthyR6pRinrwY/view?usp=drive_link',
+    videoUrl: 'https://drive.google.com/file/d/18vwL3BpD_Yym70VOXW8kdLhmGKgw-BWm/view?usp=drive_link',
     badge: 'Portfolio guide',
     title: 'Holdings Table',
     summary:
@@ -90,6 +91,7 @@ export default function TutorialPopup({
   isOpen = false,
   tutorialKey,
   tutorials = {},
+  allowVideo = true,
   onClose,
 }) {
   const [showVideo, setShowVideo] = useState(false);
@@ -242,14 +244,18 @@ export default function TutorialPopup({
         )}
 
         <div className="mt-6 flex items-center justify-between">
-          <button
-            type="button"
-            onClick={() => setShowVideo((prev) => !prev)}
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#2ebd85] transition-colors hover:text-[#26a070] dark:text-[#4cc99b] dark:hover:text-[#7de0b8]"
-          >
-            <PlayCircle className="h-4 w-4" />
-            {showVideo ? 'Hide tutorial' : 'Watch tutorial'}
-          </button>
+          {allowVideo ? (
+            <button
+              type="button"
+              onClick={() => setShowVideo((prev) => !prev)}
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#2ebd85] transition-colors hover:text-[#26a070] dark:text-[#4cc99b] dark:hover:text-[#7de0b8]"
+            >
+              <PlayCircle className="h-4 w-4" />
+              {showVideo ? 'Hide tutorial' : 'Watch tutorial'}
+            </button>
+          ) : (
+            <span />
+          )}
           <button
             type="button"
             onClick={handleClose}

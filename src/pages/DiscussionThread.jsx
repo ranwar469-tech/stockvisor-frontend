@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, MessageSquare, Users, RefreshCw, MoreVertical, Trash2, Heart } from 'lucide-react';
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, MessageSquare, Users, RefreshCw, MoreVertical, Trash2, Heart, Flag, X } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -9,6 +9,7 @@ export default function DiscussionThread() {
   const isAdmin = (user?.role || 'user') === 'admin';
   const navigate = useNavigate();
   const { threadId } = useParams();
+  const [searchParams] = useSearchParams();
 
   const [thread, setThread] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -22,6 +23,14 @@ export default function DiscussionThread() {
   const [deletingThread, setDeletingThread] = useState(false);
   const [likedByPostId, setLikedByPostId] = useState({});
   const [likingPostId, setLikingPostId] = useState(null);
+  const [reportingThread, setReportingThread] = useState(false);
+  const [reportingPostId, setReportingPostId] = useState(null);
+  const [reportFeedback, setReportFeedback] = useState('');
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportTargetType, setReportTargetType] = useState('thread');
+  const [reportTargetId, setReportTargetId] = useState(null);
+  const [reportReason, setReportReason] = useState('');
+  const [reportDetails, setReportDetails] = useState('');
 
   const fetchThread = useCallback(async () => {
     if (!threadId) return;
@@ -191,6 +200,90 @@ export default function DiscussionThread() {
     }
   };
 
+  const resetReportModal = () => {
+    setShowReportModal(false);
+    setReportTargetType('thread');
+    setReportTargetId(null);
+    setReportReason('');
+    setReportDetails('');
+  };
+
+  const openReportModal = (targetType, targetId) => {
+    setReportFeedback('');
+    setPostError('');
+    setReportTargetType(targetType);
+    setReportTargetId(targetId);
+    setReportReason('');
+    setReportDetails('');
+    setShowReportModal(true);
+  };
+
+  const handleReportThread = () => {
+    if (!thread?.id) return;
+    const isOwnThread = Boolean(user?.id) && String(thread.created_by) === String(user.id);
+    if (isOwnThread) {
+      setReportFeedback('You cannot report your own thread.');
+      return;
+    }
+    openReportModal('thread', thread.id);
+  };
+
+  const handleReportPost = (postId) => {
+    if (!postId) return;
+    const targetPost = posts.find((item) => String(item.id) === String(postId));
+    const isOwnPost = Boolean(user?.id) && String(targetPost?.user_id) === String(user.id);
+    if (isOwnPost) {
+      setReportFeedback('You cannot report your own post.');
+      return;
+    }
+    openReportModal('post', postId);
+  };
+
+  const handleSubmitReport = async () => {
+    const reason = reportReason.trim();
+    const details = reportDetails.trim();
+
+    if (!reason) {
+      setReportFeedback('Report reason is required.');
+      return;
+    }
+
+    const isThreadTarget = reportTargetType === 'thread';
+    const endpoint = isThreadTarget
+      ? `/discussions/threads/${reportTargetId}/reports`
+      : `/discussions/posts/${reportTargetId}/reports`;
+
+    if (isThreadTarget) {
+      setReportingThread(true);
+    } else {
+      setReportingPostId(reportTargetId);
+    }
+    setReportFeedback('');
+
+    try {
+      await api.post(endpoint, {
+        reason,
+        details: details || undefined,
+      });
+
+      setReportFeedback(
+        isThreadTarget
+          ? 'Thread reported successfully. Our admins will review it.'
+          : 'Post reported successfully. Our admins will review it.'
+      );
+      resetReportModal();
+    } catch (err) {
+      const msg = err.response?.data?.detail || 'Failed to submit report.';
+      setReportFeedback(typeof msg === 'string' ? msg : 'Failed to submit report.');
+    } finally {
+      if (isThreadTarget) {
+        setReportingThread(false);
+      } else {
+        setReportingPostId(null);
+      }
+    }
+  };
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
@@ -199,6 +292,12 @@ export default function DiscussionThread() {
   const participants = Array.isArray(thread?.participating_users) ? thread.participating_users.length : 0;
   const currentUserId = String(user?.id || '');
   const canManageThread = Boolean(thread) && (String(thread.created_by) === currentUserId || isAdmin);
+  const isOwnThread = Boolean(thread) && String(thread.created_by) === currentUserId;
+  const highlightSource = searchParams.get('source');
+  const highlightTarget = searchParams.get('highlightTarget');
+  const highlightedPostId = searchParams.get('postId');
+  const shouldHighlightFromAdmin = highlightSource === 'adminReport';
+  const isThreadHighlighted = shouldHighlightFromAdmin && highlightTarget === 'thread';
 
   const formatAuthorName = (authorId, username) => {
     const idValue = String(authorId || '').trim();
@@ -212,11 +311,20 @@ export default function DiscussionThread() {
     return idValue;
   };
 
+  useEffect(() => {
+    if (!thread || !shouldHighlightFromAdmin || highlightTarget !== 'post' || !highlightedPostId) return;
+
+    const targetNode = document.getElementById(`post-${highlightedPostId}`);
+    if (targetNode) {
+      targetNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [thread, shouldHighlightFromAdmin, highlightTarget, highlightedPostId]);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <Link
-          to="/community"
+          to={user?.role === 'admin' ? '/community?adminManage=1' : '/community'}
           className="inline-flex items-center gap-2 text-sm font-semibold text-[#2ebd85] hover:text-[#26a070] transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -247,43 +355,70 @@ export default function DiscussionThread() {
 
       {thread && (
         <>
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-[#2ebd85] overflow-hidden transition-colors duration-300">
-            <div className="px-6 py-5 border-b border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-700">
+          <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border overflow-hidden transition-colors duration-300 ${
+            isThreadHighlighted
+              ? 'border-orange-400 ring-2 ring-orange-200 dark:border-red-700 dark:ring-red-900/40'
+              : 'border-[#2ebd85]'
+          }`}>
+            <div className={`px-6 py-5 border-b border-slate-200 dark:border-gray-700 ${
+              isThreadHighlighted ? 'bg-orange-50 dark:bg-red-900/20' : 'bg-slate-50 dark:bg-gray-700'
+            }`}>
               <div className="flex items-center justify-between gap-3 mb-2">
                 <span className="px-2 py-1 bg-[#2ebd85] rounded text-xs font-semibold text-white">
                   {thread.category}
                 </span>
 
-                {canManageThread && (
-                  <div className="relative">
+                <div className="flex items-center gap-2">
+                  {!isOwnThread && (
                     <button
                       type="button"
-                      onClick={() => setOpenThreadMenu((prev) => !prev)}
-                      className="p-1 rounded text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-gray-600 transition-colors"
-                      title="Thread actions"
+                      onClick={handleReportThread}
+                      disabled={reportingThread}
+                      className={`inline-flex items-center justify-center p-1.5 rounded text-amber-700 bg-amber-100 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:hover:bg-amber-900/50 transition-colors disabled:opacity-60 ${
+                        isThreadHighlighted ? 'ring-2 ring-orange-400 dark:ring-red-700' : ''
+                      }`}
+                      title="Report thread"
+                      aria-label="Report thread"
                     >
-                      <MoreVertical className="w-4 h-4" />
+                      {reportingThread ? (
+                        <RefreshCw className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <Flag className="w-3 h-3" />
+                      )}
                     </button>
+                  )}
 
-                    {openThreadMenu && (
-                      <div className="absolute right-0 mt-1 w-36 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-lg shadow-lg z-20 overflow-hidden">
-                        <button
-                          type="button"
-                          onClick={handleDeleteThread}
-                          disabled={deletingThread}
-                          className="w-full px-3 py-2 text-left text-sm text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors flex items-center gap-2 disabled:opacity-60"
-                        >
-                          {deletingThread ? (
-                            <RefreshCw className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Trash2 className="w-4 h-4" />
-                          )}
-                          {isAdmin && String(thread.created_by) !== currentUserId ? 'Delete (Admin)' : 'Delete'}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
+                  {canManageThread && (
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setOpenThreadMenu((prev) => !prev)}
+                        className="p-1 rounded text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-gray-600 transition-colors"
+                        title="Thread actions"
+                      >
+                        <MoreVertical className="w-4 h-4" />
+                      </button>
+
+                      {openThreadMenu && (
+                        <div className="absolute right-0 mt-1 w-36 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 rounded-lg shadow-lg z-20 overflow-hidden">
+                          <button
+                            type="button"
+                            onClick={handleDeleteThread}
+                            disabled={deletingThread}
+                            className="w-full px-3 py-2 text-left text-sm text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors flex items-center gap-2 disabled:opacity-60"
+                          >
+                            {deletingThread ? (
+                              <RefreshCw className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
+                            {isAdmin && String(thread.created_by) !== currentUserId ? 'Delete (Admin)' : 'Delete'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{thread.title}</h2>
               <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-slate-600 dark:text-gray-400">
@@ -306,14 +441,43 @@ export default function DiscussionThread() {
                 </div>
               )}
 
-              {posts.map((post) => (
-                <div key={post.id} className="px-6 py-4">
+              {posts.map((post) => {
+                const isHighlightedPost = shouldHighlightFromAdmin && highlightTarget === 'post' && String(post.id) === String(highlightedPostId);
+                const isOwnPost = String(post.user_id) === currentUserId;
+
+                return (
+                <div
+                  id={`post-${post.id}`}
+                  key={post.id}
+                  className={`px-6 py-4 transition-colors ${
+                    isHighlightedPost ? 'bg-orange-50/90 dark:bg-red-900/20' : ''
+                  }`}
+                >
                   <div className="flex items-center justify-between gap-3 mb-1">
                     <p className="text-sm font-semibold text-slate-900 dark:text-white">{formatAuthorName(post.user_id, post.username)}</p>
                     <div className="flex items-center gap-2">
                       <p className="text-xs text-slate-500 dark:text-gray-400">
                         {new Date(post.created_at).toLocaleString()}
                       </p>
+
+                      {!isOwnPost && (
+                        <button
+                          type="button"
+                          onClick={() => handleReportPost(post.id)}
+                          disabled={reportingPostId === post.id}
+                          className={`inline-flex items-center justify-center p-1.5 rounded text-amber-700 bg-amber-100 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:hover:bg-amber-900/50 transition-colors disabled:opacity-60 ${
+                            isHighlightedPost ? 'ring-2 ring-orange-400 dark:ring-red-700' : ''
+                          }`}
+                          title="Report post"
+                          aria-label="Report post"
+                        >
+                          {reportingPostId === post.id ? (
+                            <RefreshCw className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <Flag className="w-3 h-3" />
+                          )}
+                        </button>
+                      )}
 
                       {(String(post.user_id) === currentUserId || isAdmin) && (
                         <div className="relative">
@@ -367,7 +531,7 @@ export default function DiscussionThread() {
                     </button>
                   </div>
                 </div>
-              ))}
+              );})}
             </div>
 
             <div className="px-6 py-4 border-t border-slate-200 dark:border-gray-700 bg-slate-50/70 dark:bg-gray-700/50">
@@ -403,6 +567,79 @@ export default function DiscussionThread() {
 
           {error && (
             <div className="text-sm text-rose-500">{error}</div>
+          )}
+
+          {reportFeedback && (
+            <div className={`text-sm ${reportFeedback.toLowerCase().includes('failed') || reportFeedback.toLowerCase().includes('required') ? 'text-rose-500' : 'text-[#2ebd85]'}`}>
+              {reportFeedback}
+            </div>
+          )}
+
+          {showReportModal && (
+            <div className="fixed inset-0 bg-transparent bg-opacity-50 flex items-center justify-center p-4 z-50">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                    Report {reportTargetType === 'thread' ? 'Thread' : 'Post'}
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={resetReportModal}
+                    className="p-1 rounded transition-colors hover:bg-slate-100 dark:hover:bg-gray-700"
+                    aria-label="Close report dialog"
+                  >
+                    <X className="w-5 h-5 text-slate-600 dark:text-gray-400" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-600 dark:text-gray-400 mb-2">Reason</label>
+                    <input
+                      type="text"
+                      placeholder="Why are you reporting this content?"
+                      value={reportReason}
+                      onChange={(e) => setReportReason(e.target.value)}
+                      className="w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 border-slate-300 dark:border-gray-600 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2ebd85]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-600 dark:text-gray-400 mb-2">Additional details (optional)</label>
+                    <textarea
+                      placeholder="Add more context for moderators"
+                      value={reportDetails}
+                      onChange={(e) => setReportDetails(e.target.value)}
+                      rows={4}
+                      className="w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 border-slate-300 dark:border-gray-600 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2ebd85] resize-none"
+                    />
+                  </div>
+
+                  <div className="flex space-x-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={resetReportModal}
+                      className="flex-1 px-4 py-2 rounded-lg transition-colors bg-slate-200 dark:bg-gray-700 text-slate-900 dark:text-white hover:bg-slate-300 dark:hover:bg-gray-600"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSubmitReport}
+                      disabled={
+                        reportingThread ||
+                        (reportTargetType === 'post' && reportingPostId === reportTargetId)
+                      }
+                      className="flex-1 px-4 py-2 bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-white rounded-lg transition-colors flex items-center justify-center"
+                    >
+                      {reportingThread || (reportTargetType === 'post' && reportingPostId === reportTargetId)
+                        ? <RefreshCw className="w-4 h-4 animate-spin" />
+                        : 'Submit Report'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
         </>
       )}

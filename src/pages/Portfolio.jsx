@@ -36,6 +36,9 @@ export default function Portfolio() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newStock, setNewStock] = useState({ symbol: '', quantity: '', purchasePrice: '' });
   const [addLoading, setAddLoading] = useState(false);
+  const [activePortfolioTab, setActivePortfolioTab] = useState('holdings');
+  const [historyActivities, setHistoryActivities] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   const [showSellModal, setShowSellModal] = useState(false);
   const [sellStock, setSellStock] = useState({ symbol: '', quantity: '' });
@@ -170,9 +173,30 @@ export default function Portfolio() {
     }
   }, [isAuthenticated]);
 
+  const fetchHistory = useCallback(async () => {
+    if (!isAuthenticated) {
+      setHistoryActivities([]);
+      return;
+    }
+    setHistoryLoading(true);
+    try {
+      const { data } = await api.get('/portfolio/history');
+      setHistoryActivities(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Failed to fetch portfolio history:', err);
+      setHistoryActivities([]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, [isAuthenticated]);
+
   useEffect(() => {
     fetchHoldings();
   }, [fetchHoldings]);
+
+  useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory]);
 
   useEffect(() => {
     if (!addSuccess) return;
@@ -221,10 +245,12 @@ export default function Portfolio() {
     setAddLoading(true);
     setAddError('');
     try {
+      const submittedQuantity = parseFloat(newStock.quantity);
+      const submittedPrice = parseFloat(newStock.purchasePrice);
       const { data } = await api.post('/portfolio/', {
         symbol: newStock.symbol.toUpperCase(),
-        quantity: parseFloat(newStock.quantity),
-        purchase_price: parseFloat(newStock.purchasePrice),
+        quantity: submittedQuantity,
+        purchase_price: submittedPrice,
       });
       let actionLabel = 'added';
       setHoldings((prevHoldings) => {
@@ -245,6 +271,7 @@ export default function Portfolio() {
       });
       resetModal();
       setAddSuccess(`Holding ${actionLabel} successfully`);
+      fetchHistory();
     } catch (err) {
       const msg = err.response?.data?.detail || 'Failed to add stock.';
       setAddError(typeof msg === 'string' ? msg : 'Failed to add stock.');
@@ -258,9 +285,10 @@ export default function Portfolio() {
     setSellLoading(true);
     setSellError('');
     try {
+      const submittedQuantity = parseFloat(sellStock.quantity);
       const { data } = await api.post(SELL_STOCK_ENDPOINT, {
         symbol: sellStock.symbol.toUpperCase(),
-        quantity: parseFloat(sellStock.quantity),
+        quantity: submittedQuantity,
       });
 
       let actionLabel = 'sold';
@@ -288,12 +316,20 @@ export default function Portfolio() {
 
       resetSellModal();
       setAddSuccess(`Holding ${actionLabel} successfully`);
+      fetchHistory();
     } catch (err) {
       const msg = err.response?.data?.detail || 'Failed to sell stock.';
       setSellError(typeof msg === 'string' ? msg : 'Failed to sell stock.');
     } finally {
       setSellLoading(false);
     }
+  };
+
+  const formatActivityDate = (timestamp) => {
+    if (!timestamp) return '-';
+    const parsed = new Date(timestamp);
+    if (Number.isNaN(parsed.getTime())) return '-';
+    return parsed.toLocaleString();
   };
 
   return (
@@ -388,7 +424,30 @@ export default function Portfolio() {
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-[#2ebd85] overflow-hidden transition-colors duration-300">
         <div className="px-6 py-4 border-b border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-700 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Holdings</h3>
+            <div className="flex items-center space-x-4">
+              <button
+                type="button"
+                onClick={() => setActivePortfolioTab('holdings')}
+                className={`pb-2 px-4 font-medium transition-colors border-b-2 ${
+                  activePortfolioTab === 'holdings'
+                    ? 'border-[#2ebd85] text-[#2ebd85]'
+                    : 'border-transparent text-slate-600 dark:text-gray-400 hover:text-[#2ebd85]'
+                }`}
+              >
+                Holdings
+              </button>
+              <button
+                type="button"
+                onClick={() => setActivePortfolioTab('history')}
+                className={`pb-2 px-4 font-medium transition-colors border-b-2 ${
+                  activePortfolioTab === 'history'
+                    ? 'border-[#2ebd85] text-[#2ebd85]'
+                    : 'border-transparent text-slate-600 dark:text-gray-400 hover:text-[#2ebd85]'
+                }`}
+              >
+                View History
+              </button>
+            </div>
             <TutorialInfoButton
               label="holdings table"
               onClick={() => openTutorial('holdings')}
@@ -442,8 +501,8 @@ export default function Portfolio() {
           </div>
         )}
 
-        {holdings.length > 0 && (
-        <div className="overflow-x-auto">
+        {activePortfolioTab === 'holdings' && holdings.length > 0 && (
+        <div className="max-h-128 overflow-y-auto overflow-x-auto">
           <table className="w-full">
             <thead className="bg-slate-50 dark:bg-gray-700 border-b border-slate-200 dark:border-gray-700">
               <tr>
@@ -533,6 +592,70 @@ export default function Portfolio() {
             </tbody>
           </table>
         </div>
+        )}
+
+        {activePortfolioTab === 'history' && (
+          <div className="max-h-128 overflow-y-auto overflow-x-auto">
+            {historyActivities.length === 0 ? (
+              <div className="py-16 text-center text-slate-500 dark:text-gray-400">No history available yet.</div>
+            ) : (
+              <table className="w-full">
+                <thead className="bg-slate-50 dark:bg-gray-700 border-b border-slate-200 dark:border-gray-700">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-black dark:text-yellow-300 uppercase tracking-wider">Type</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-black dark:text-yellow-300 uppercase tracking-wider">Symbol</th>
+                    <th className="px-6 py-3 text-right text-xs font-semibold text-black dark:text-yellow-300 uppercase tracking-wider">Shares</th>
+                    <th className="px-6 py-3 text-right text-xs font-semibold text-black dark:text-yellow-300 uppercase tracking-wider">Price</th>
+                    <th className="px-6 py-3 text-right text-xs font-semibold text-black dark:text-yellow-300 uppercase tracking-wider">Total</th>
+                    <th className="px-6 py-3 text-right text-xs font-semibold text-black dark:text-yellow-300 uppercase tracking-wider">Date</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 dark:divide-gray-700">
+                  {historyActivities.map((activity) => {
+                    const isBuy = activity.activityType === 'buy';
+                    const shares = Number(activity.shares) || 0;
+                    const price = Number(activity.price) || 0;
+                    const total = shares * price;
+
+                    return (
+                      <tr key={activity.id} className="hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors">
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex px-2 py-1 rounded text-xs font-semibold ${
+                            isBuy
+                              ? 'bg-[#edfaf4] text-[#2ebd85] dark:bg-[#114832]/30 dark:text-[#4cc99b]'
+                              : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300'
+                          }`}>
+                            {isBuy ? 'BUY' : 'SELL'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <p className="font-bold text-slate-900 dark:text-white">{activity.symbol}</p>
+                          <p className="text-xs text-slate-600 dark:text-gray-400">{activity.name || '-'}</p>
+                        </td>
+                        <td className="px-6 py-4 text-right text-slate-900 dark:text-white">
+                          {shares.toLocaleString('en-US', { maximumFractionDigits: 4 })}
+                        </td>
+                        <td className="px-6 py-4 text-right text-slate-900 dark:text-white">
+                          ${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </td>
+                        <td className="px-6 py-4 text-right text-slate-900 dark:text-white">
+                          ${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </td>
+                        <td className="px-6 py-4 text-right text-slate-600 dark:text-gray-400 text-sm">
+                          {formatActivityDate(activity.createdAt)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
+            {historyLoading && (
+              <div className="py-4 text-center text-sm text-slate-500 dark:text-gray-400">
+                <RefreshCw className="w-4 h-4 animate-spin inline-block mr-2" /> Loading history...
+              </div>
+            )}
+          </div>
         )}
       </div>
 

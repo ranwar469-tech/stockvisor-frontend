@@ -106,6 +106,10 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(()=>{
+fetchMarketSentiment();
+  },[])
+
   const openTutorial = (tutorialKey) => {
     setActiveTutorialKey(tutorialKey);
   };

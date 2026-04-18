@@ -6,9 +6,10 @@ const StockHeatmap = ({ headerAction = null }) => {
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isDark, setIsDark] = useState(
-    document.documentElement.classList.contains('dark')
-  );
+  const [isDark, setIsDark] = useState(() => {
+    const storedTheme = window.localStorage.getItem("theme");
+    return storedTheme ? storedTheme === "dark" : true;
+  });
 
   useEffect(() => {
     const root = document.documentElement;
@@ -36,18 +37,33 @@ const StockHeatmap = ({ headerAction = null }) => {
       headerColor: isDark ? '#111827' : '#f1f5f9',
       fontColor: isDark ? '#d1d5db' : '#334155',
       showScale: false,
-      generateTooltip: (row, size, value) => {
-        const realMcap = size * size;
+      generateTooltip: (row) => {
+        const rowIndex = Number(row);
+        const rowData = Number.isFinite(rowIndex) ? chartData[rowIndex + 1] : null;
+
+        const label = rowData?.[0] ?? String(row);
+        const parent = rowData?.[1] ?? null;
+        const storedSize = Number(rowData?.[2] ?? 0);
+        const storedChange = Number(rowData?.[3] ?? 0);
+
+        const isLeafStock = Boolean(parent && parent !== 'Market');
+        const displayChange = Number.isFinite(storedChange)
+          ? `${storedChange > 0 ? '+' : ''}${storedChange.toFixed(2)}%`
+          : '-';
+        const realMcap = isLeafStock && Number.isFinite(storedSize)
+          ? storedSize * storedSize
+          : null;
+
         return (
           '<div style="background:' + tooltipBackground + '; padding:10px; border:1px solid ' + tooltipBorder + '; color:' + tooltipText + '; font-family:sans-serif;">' +
-          '<strong>' + row + '</strong><br/>' +
-          'Change: ' + value + '%<br/>' +
-          'Mcap: $' + (realMcap / 1e9).toFixed(1) + 'B' +
+          '<strong>' + label + '</strong><br/>' +
+          'Change: ' + displayChange + '<br/>' +
+          (realMcap !== null ? 'Mcap: $' + (realMcap / 1e9).toFixed(1) + 'B' : 'Aggregate Sector') +
           '</div>'
         );
       },
     };
-  }, [isDark]);
+  }, [isDark, chartData]);
 
   useEffect(() => {
     const fetchHeatmapData = async () => {
@@ -61,17 +77,34 @@ const StockHeatmap = ({ headerAction = null }) => {
           ["Market", null, 0, 0], // The Root node
         ];
 
-        // 3. Create Sector nodes
-        const sectorNames = [...new Set(flatData.map((item) => item.sector))];
-        sectorNames.forEach((sector) => {
-          dataForChart.push([sector, "Market", 0, 0]);
+        // 3. Create Sector nodes with weighted average change based on market cap
+        const sectorStats = flatData.reduce((acc, item) => {
+          const sector = item.sector || 'Other';
+          const mcap = Number(item.mcap) || 0;
+          const change = Number(item.change) || 0;
+
+          if (!acc[sector]) {
+            acc[sector] = {
+              totalMcap: 0,
+              weightedChangeSum: 0,
+            };
+          }
+
+          acc[sector].totalMcap += mcap;
+          acc[sector].weightedChangeSum += change * mcap;
+          return acc;
+        }, {});
+
+        Object.entries(sectorStats).forEach(([sector, stats]) => {
+          const sectorChange = stats.totalMcap > 0 ? stats.weightedChangeSum / stats.totalMcap : 0;
+          dataForChart.push([sector, "Market", 0, sectorChange]);
         });
 
         // 4. Create Stock nodes (sqrt compresses huge caps so smaller stocks get readable tiles)
         flatData.forEach((stock) => {
           dataForChart.push([
             stock.stock,                    // Unique ID (Ticker)
-            stock.sector,                   // Parent ID (Sector)
+            stock.sector || 'Other',        // Parent ID (Sector)
             Math.sqrt(stock.mcap || 1),     // Size logic – compressed
             stock.change || 0,              // Color logic
           ]);

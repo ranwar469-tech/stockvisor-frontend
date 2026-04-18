@@ -144,9 +144,9 @@ function Layout() {
             </Link>
           </li>
           <li>
-            <Link to="/community" className="hover:text-[#4cc99b] text-lg transition-colors font-medium text-slate-900 dark:text-white">
-              Community
-            </Link>
+         <Link to={user?.role === 'admin' ? '/community?adminManage=1' : '/community'}className="hover:text-[#4cc99b] text-lg transition-colors font-medium text-slate-900 dark:text-white">
+         Community
+         </Link>
           </li>
           <li>
             <Link to="/news" className="hover:text-[#4cc99b] text-lg transition-colors font-medium text-slate-900 dark:text-white">

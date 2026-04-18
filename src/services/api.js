@@ -12,6 +12,9 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Set it globally for all requests
+axios.defaults.headers.common['ngrok-skip-browser-warning'] = 'true';
+
 // On 401, clear stored auth — but NOT for auth endpoints themselves.
 // Instead of hard-redirecting (which destroys React state), dispatch a custom
 // event so AuthContext can handle logout + redirect through React Router.

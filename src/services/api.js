@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000'  /*'https://stockvisor-backend.onrender.com'*/ ,
+  baseURL: import.meta.env.VITE_API_URL || 'https://frigidity-bunkbed-stalemate.ngrok-free.dev/' /*'http://localhost:8000'*/  /*'https://stockvisor-backend.onrender.com'*/ ,
   headers: { 'Content-Type': 'application/json' },
 });
 

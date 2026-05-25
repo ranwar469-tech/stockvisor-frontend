@@ -30,6 +30,7 @@ export default function Home() {
   const [marketStatus, setMarketStatus] = useState('Loading...');
   const [marketSentiment, setMarketSentiment] = useState('Bullish 🔥');
   const [sentimentRefreshing, setSentimentRefreshing] = useState(false);
+  const [activeStockCount, setActiveStockCount] = useState('Loading...');
   const [activeTutorialKey, setActiveTutorialKey] = useState(null);
 
   const recommendationData = [
@@ -95,6 +96,16 @@ export default function Home() {
     }
   };
 
+  const fetchActiveStockCount = async () => {
+    try {
+      const { data } = await api.get('/stocks/active-count');
+      setActiveStockCount(Number(data.count).toLocaleString());
+    } catch (error) {
+      console.error('Failed to fetch active stock count:', error);
+      setActiveStockCount('—');
+    }
+  };
+
   useEffect(() => {
     fetchMarketStatus();
   }, []);
@@ -108,6 +119,7 @@ export default function Home() {
 
   useEffect(()=>{
 fetchMarketSentiment();
+fetchActiveStockCount();
   },[])
 
   const openTutorial = (tutorialKey) => {
@@ -121,7 +133,7 @@ fetchMarketSentiment();
   const marketStats = [
     { label: 'AI Market Sentiment', value: marketSentiment, icon: Brain },
     { label: 'US Market Status', value: marketStatus, icon: Activity },
-    { label: 'Active Stocks', value: '6,247', icon: BarChart3 },
+    { label: 'Active Stocks', value: activeStockCount, icon: BarChart3 },
   ];
 
   return (

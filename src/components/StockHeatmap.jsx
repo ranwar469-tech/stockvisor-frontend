@@ -1,6 +1,9 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Chart } from "react-google-charts";
 import api from '../services/api';
+
+const CACHE_KEY = 'stockvisor_heatmap';
+const CACHE_TTL = 3 * 60 * 1000; // 3 minutes
 
 const StockHeatmap = ({ headerAction = null }) => {
   const [chartData, setChartData] = useState([]);
@@ -10,6 +13,7 @@ const StockHeatmap = ({ headerAction = null }) => {
     const storedTheme = window.localStorage.getItem("theme");
     return storedTheme ? storedTheme === "dark" : true;
   });
+  const cacheCheckDone = useRef(false);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -67,56 +71,87 @@ const StockHeatmap = ({ headerAction = null }) => {
 
   useEffect(() => {
     const fetchHeatmapData = async () => {
+      // ── Check sessionStorage cache first ──
+      try {
+        const cachedRaw = sessionStorage.getItem(CACHE_KEY);
+        if (cachedRaw) {
+          const { data: flatData, timestamp } = JSON.parse(cachedRaw);
+          if (Date.now() - timestamp < CACHE_TTL) {
+            buildChartData(flatData);
+            setLoading(false);
+            cacheCheckDone.current = true;
+            return;
+          }
+        }
+      } catch {
+        // Corrupted cache — ignore and fetch fresh
+        sessionStorage.removeItem(CACHE_KEY);
+      }
+
       try {
         const { data: flatData } = await api.get('/api/heatmap');
 
-        // 2. Build the Google Charts Array Format
-        // Header Row: [ID, Parent, Size, ColorValue]
-        const dataForChart = [
-          ["ID", "Parent", "Market Cap (size)", "Market Change (color)"],
-          ["Market", null, 0, 0], // The Root node
-        ];
+        // Cache the raw API response in sessionStorage
+        try {
+          sessionStorage.setItem(
+            CACHE_KEY,
+            JSON.stringify({ data: flatData, timestamp: Date.now() })
+          );
+        } catch {
+          // sessionStorage full or unavailable — non-critical
+        }
 
-        // 3. Create Sector nodes with weighted average change based on market cap
-        const sectorStats = flatData.reduce((acc, item) => {
-          const sector = item.sector || 'Other';
-          const mcap = Number(item.mcap) || 0;
-          const change = Number(item.change) || 0;
-
-          if (!acc[sector]) {
-            acc[sector] = {
-              totalMcap: 0,
-              weightedChangeSum: 0,
-            };
-          }
-
-          acc[sector].totalMcap += mcap;
-          acc[sector].weightedChangeSum += change * mcap;
-          return acc;
-        }, {});
-
-        Object.entries(sectorStats).forEach(([sector, stats]) => {
-          const sectorChange = stats.totalMcap > 0 ? stats.weightedChangeSum / stats.totalMcap : 0;
-          dataForChart.push([sector, "Market", 0, sectorChange]);
-        });
-
-        // 4. Create Stock nodes (sqrt compresses huge caps so smaller stocks get readable tiles)
-        flatData.forEach((stock) => {
-          dataForChart.push([
-            stock.stock,                    // Unique ID (Ticker)
-            stock.sector || 'Other',        // Parent ID (Sector)
-            Math.sqrt(stock.mcap || 1),     // Size logic – compressed
-            stock.change || 0,              // Color logic
-          ]);
-        });
-
-        setChartData(dataForChart);
+        buildChartData(flatData);
       } catch (err) {
         console.error("Error loading heatmap data:", err);
         setError("Failed to load market data.");
       } finally {
         setLoading(false);
+        cacheCheckDone.current = true;
       }
+    };
+
+    const buildChartData = (flatData) => {
+      // Header Row: [ID, Parent, Size, ColorValue]
+      const dataForChart = [
+        ["ID", "Parent", "Market Cap (size)", "Market Change (color)"],
+        ["Market", null, 0, 0], // The Root node
+      ];
+
+      // Sector nodes with weighted average change based on market cap
+      const sectorStats = flatData.reduce((acc, item) => {
+        const sector = item.sector || 'Other';
+        const mcap = Number(item.mcap) || 0;
+        const change = Number(item.change) || 0;
+
+        if (!acc[sector]) {
+          acc[sector] = {
+            totalMcap: 0,
+            weightedChangeSum: 0,
+          };
+        }
+
+        acc[sector].totalMcap += mcap;
+        acc[sector].weightedChangeSum += change * mcap;
+        return acc;
+      }, {});
+
+      Object.entries(sectorStats).forEach(([sector, stats]) => {
+        const sectorChange = stats.totalMcap > 0 ? stats.weightedChangeSum / stats.totalMcap : 0;
+        dataForChart.push([sector, "Market", 0, sectorChange]);
+      });
+
+      // Stock nodes (sqrt compresses huge caps so smaller stocks get readable tiles)
+      flatData.forEach((stock) => {
+        dataForChart.push([
+          stock.stock,                    // Unique ID (Ticker)
+          stock.sector || 'Other',        // Parent ID (Sector)
+          Math.sqrt(stock.mcap || 1),     // Size logic – compressed
+          stock.change || 0,              // Color logic
+        ]);
+      });
+
+      setChartData(dataForChart);
     };
 
     fetchHeatmapData();

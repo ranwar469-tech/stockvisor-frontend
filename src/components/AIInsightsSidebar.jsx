@@ -29,37 +29,39 @@ const AI_INSIGHTS_TUTORIALS = {
     badge: 'AI insights guide',
     title: 'Market Overview',
     summary:
-      'This section tracks market indices so you can quickly assess overall risk-on or risk-off direction before diving into individual stocks. Market ',
+      'This section displays the current price and daily percentage change for major US market indices including the S&P 500, NASDAQ, Dow Jones, and the VIX volatility index so you can see the overall market direction at a glance before researching individual stocks.',
     steps: [
-      'Read index values f to understand broad market positioning.',
-      'Use the percentage chip to spot which indices are leading gains or losses today.',
-      'Treat VIX spikes as a sign of increasing market stress or uncertainty.',
+      'Check the green (gain) or red (loss) percentage chip next to each index to see which benchmarks are leading or lagging for the day.',
+      'Compare the direction across indices so when all three equity indices move together, it often signals broad market conviction, while divergence can hint at sector rotation or uncertainty.',
+      'Watch the VIX: a rising VIX alongside falling equities typically signals increasing fear and market stress, while a low or falling VIX shows calmer conditions.',
     ],
-    tip: 'If equities are mixed but VIX is climbing fast, short-term volatility risk is usually elevated.',
+    tip: 'If the S&P 500 and NASDAQ are mixed but the VIX is spiking sharply, near-term volatility risk is usually elevated regardless of what individual stocks are doing.',
   },
   aiSentimentAnalysis: {
     badge: 'AI insights guide',
     title: 'AI Sentiment Analysis',
     summary:
-      'This section summarizes model-driven sentiment by sector and converts classifier confidence into an easy-to-read score bar.',
+      'This section shows AI-driven sentiment scores for four key sectors including Technology, Energy, Healthcare, and Financial. An NLP model analyzes recent market data for each sector and classifies the outlook as Bullish, Neutral, or Bearish, with a confidence bar indicating how strongly the model leans toward that call.',
     steps: [
-      'Read the sentiment label first: Bullish, Neutral, or Bearish.',
-      'Use the bar fill length as confidence, where higher percentages mean stronger model conviction.',
-      'Refresh when needed to fetch the latest sentiment output for each sector.',
+      'Start with the sentiment label: Bullish (green) suggests positive model outlook, Bearish (red) signals caution, and Neutral (yellow) indicates no strong directional signal.',
+      'Check the confidence bar length, a higher fill percentage means the model is more certain about its classification, while a shorter bar means the signal is weaker.',
+      'Press the refresh button to fetch the latest sentiment from the backend when you want up-to-date readings.',
+      'Compare sentiment across sectors to identify where the model sees strength versus where it sees headwinds.',
     ],
-    tip: 'Use sentiment as context, not confirmation. Combine it with price trend and news catalysts.',
+    tip: 'Treat sentiment as one input among many. A strong Bullish signal works best when it aligns with positive price momentum and supportive news flow.',
   },
   aiAlerts: {
     badge: 'AI insights guide',
     title: 'AI Alerts',
     summary:
-      'This section surfaces short, generated market signals and classifies each message as positive, warning, or negative for quick triage.',
+      'This section shows AI-generated market alerts which are short, automated bulletins that show notable developments or patterns across the market. Each alert is color-coded: green for positive signals, yellow for cautionary notes, and red for negative warnings, so you can quickly see what might need your attention.',
     steps: [
-      'Scan alert color and wording to prioritize what needs attention first.',
-      'Refresh alerts to request the newest generated summaries.',
-      'Cross-check alerts against charts or news before taking action.',
+      'Scan the alert colors first, green alerts highlight potentially favorable developments, yellow flags areas to watch, and red warns of possible headwinds or risks.',
+      'Read the alert text to understand the specific signal or event the AI has identified.',
+      'Press the refresh button to get the newest set of generated alerts from the backend.',
+      'Always cross-reference alerts with the sentiment section and market overview before acting.',
     ],
-    tip: 'Alerts are directional hints. Validate with your own analysis before making portfolio decisions.',
+    tip: 'Alerts are AI-generated signals, not trade recommendations. Use them as information for your own research rather than standalone reasons to buy or sell.',
   },
 };
 

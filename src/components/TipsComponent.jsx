@@ -1,12 +1,6 @@
 import { ArrowLeft } from 'lucide-react';
 
-/**
- * TipsComponent — detailed view for a single trading tip.
- *
- * Props:
- *  tip      {object}   — the tip object (see Tips.jsx for shape)
- *  onClose  {function} — called when the user wants to go back
- */
+
 export default function TipsComponent({ tip, onClose }) {
   if (!tip) return null;
 
@@ -21,7 +15,6 @@ export default function TipsComponent({ tip, onClose }) {
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-[#2ebd85] overflow-hidden transition-colors duration-300 flex flex-col">
-      {/* Header */}
       <div className="px-6 py-4 border-b border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-700 flex items-center gap-4 shrink-0">
         <button
           onClick={onClose}
@@ -37,9 +30,8 @@ export default function TipsComponent({ tip, onClose }) {
         </span>
       </div>
 
-      {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-8">
-        {/* Hero */}
+           <div className="flex-1 overflow-y-auto px-6 py-6 space-y-8">
+      
         <div className="flex items-start gap-4">
           <span className="text-5xl select-none">{tip.icon}</span>
           <div>
@@ -48,7 +40,6 @@ export default function TipsComponent({ tip, onClose }) {
           </div>
         </div>
 
-        {/* Overview */}
         {tip.overview && (
           <section>
             <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">Overview</h3>
@@ -56,7 +47,6 @@ export default function TipsComponent({ tip, onClose }) {
           </section>
         )}
 
-        {/* Key Points */}
         {tip.keyPoints?.length > 0 && (
           <section>
             <h3 className="text-base font-bold text-slate-900 dark:text-white mb-3">Key Points</h3>
@@ -73,7 +63,6 @@ export default function TipsComponent({ tip, onClose }) {
           </section>
         )}
 
-        {/* Steps */}
         {tip.steps?.length > 0 && (
           <section>
             <h3 className="text-base font-bold text-slate-900 dark:text-white mb-3">How To Apply</h3>
@@ -95,7 +84,6 @@ export default function TipsComponent({ tip, onClose }) {
           </section>
         )}
 
-        {/* Example */}
         {tip.example && (
           <section>
             <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">Example</h3>
@@ -105,7 +93,6 @@ export default function TipsComponent({ tip, onClose }) {
           </section>
         )}
 
-        {/* Pros & Cons */}
         {(tip.pros?.length > 0 || tip.cons?.length > 0) && (
           <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {tip.pros?.length > 0 && (
@@ -137,7 +124,6 @@ export default function TipsComponent({ tip, onClose }) {
           </section>
         )}
 
-        {/* Tip / Bottom Note */}
         {tip.bottomNote && (
           <section className="rounded-lg border border-yellow-300 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/20 px-5 py-4 flex items-start gap-3">
             <span className="text-xl">⚠️</span>

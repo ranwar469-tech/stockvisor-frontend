@@ -45,7 +45,6 @@ export default function Portfolio() {
   const [sellLoading, setSellLoading] = useState(false);
   const [sellError, setSellError] = useState('');
 
-  // Symbol search / autocomplete state
   const [symbolQuery, setSymbolQuery] = useState('');
   const [symbolResults, setSymbolResults] = useState([]);
   const [symbolSearchLoading, setSymbolSearchLoading] = useState(false);
@@ -58,7 +57,6 @@ export default function Portfolio() {
   const [showSellSymbolDropdown, setShowSellSymbolDropdown] = useState(false);
   const sellSymbolRef = useRef(null);
 
-  // Debounced search for symbol autocomplete
   useEffect(() => {
     if (!symbolQuery.trim()) {
       setSymbolResults([]);
@@ -101,7 +99,6 @@ export default function Portfolio() {
     return () => clearTimeout(timer);
   }, [sellSymbolQuery]);
 
-  // Close symbol dropdown on outside click
   useEffect(() => {
     const handleClick = (e) => {
       if (symbolRef.current && !symbolRef.current.contains(e.target)) {
@@ -334,13 +331,11 @@ export default function Portfolio() {
 
   return (
     <div className="space-y-8">
-      {/* Page Header */}
       <div className="mb-4">
         <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Your Portfolio</h2>
         <span className="text-slate-600 dark:text-slate-400 mb-6 inline-block border-[#2ebd85] border-b-2">Track your investments and monitor daily performance</span>
       </div>
 
-      {/* Not logged in prompt */}
       {!isAuthenticated && (
         <div className="bg-white dark:bg-gray-800 rounded-xl p-12 shadow-sm border border-[#2ebd85] text-center">
           <p className="text-slate-600 dark:text-gray-400 mb-4">Log in to track your portfolio</p>
@@ -364,7 +359,6 @@ export default function Portfolio() {
       {isAuthenticated && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2 items-stretch" style={{ gridAutoRows: '1fr' }}>
-            {/* Summary Cards - stacked in col 1 */}
             <div className="flex flex-col gap-2">
               <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm border border-[#2ebd85] hover:shadow-md transition-shadow">
                 <p className="text-sm text-slate-600 dark:text-gray-400 mb-1">Total Invested</p>
@@ -420,7 +414,6 @@ export default function Portfolio() {
             </div>
           </div>
 
-      {/* Holdings Table */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-[#2ebd85] overflow-hidden transition-colors duration-300">
         <div className="px-6 py-4 border-b border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-700 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -479,14 +472,12 @@ export default function Portfolio() {
           </div>
         </div>
 
-        {/* Loading state */}
         {loading && holdings.length === 0 && (
           <div className="flex items-center justify-center py-16 text-slate-500 dark:text-gray-400">
             <RefreshCw className="w-5 h-5 animate-spin mr-2" /> Loading portfolio…
           </div>
         )}
 
-        {/* Error state */}
         {error && holdings.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 text-rose-500">
             <p>{error}</p>
@@ -494,7 +485,6 @@ export default function Portfolio() {
           </div>
         )}
 
-        {/* Empty state */}
         {!loading && !error && holdings.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 text-slate-500 dark:text-gray-400">
             <p>No holdings yet. Add your first stock!</p>
@@ -659,7 +649,6 @@ export default function Portfolio() {
         )}
       </div>
 
-      {/* Add Stock Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-transparent bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200 dark:border-gray-700">
@@ -698,7 +687,6 @@ export default function Portfolio() {
                   />
                 </div>
 
-                {/* Autocomplete dropdown */}
                 {showSymbolDropdown && (
                   <div className="absolute top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto rounded-lg border border-[#2ebd85] bg-white dark:bg-gray-800 shadow-lg z-50">
                     {symbolSearchLoading ? (
@@ -723,7 +711,6 @@ export default function Portfolio() {
                   </div>
                 )}
 
-                {/* Selected symbol badge */}
                 {newStock.symbol && (
                   <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#edfaf4] dark:bg-[#114832]/30 border border-[#2ebd85] text-sm font-semibold text-[#2ebd85]">
                     {newStock.symbol}
@@ -776,7 +763,6 @@ export default function Portfolio() {
         </div>
       )}
 
-      {/* Sell Stock Modal */}
       {showSellModal && (
         <div className="fixed inset-0 bg-transparent bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200 dark:border-gray-700">

@@ -54,7 +54,7 @@ const navigate = useNavigate();
 
   return (
     <div className="max-w-2xl mx-auto py-10 px-4">
-      {/* Header with avatar */}
+
       <div className="flex items-center gap-5 mb-10">
         <div className="w-20 h-20 rounded-full bg-[#2ebd85] flex items-center justify-center text-white text-3xl font-bold shadow-lg select-none">
           {initial}
@@ -65,7 +65,6 @@ const navigate = useNavigate();
         </div>
       </div>
 
-      {/* Profile Info */}
       <form onSubmit={handleSaveProfile} className="bg-white dark:bg-gray-800 rounded-2xl border border-slate-200 dark:border-gray-700 p-6 mb-6 shadow-sm">
         <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
           <User className="w-5 h-5 text-[#2ebd85]" />
@@ -104,7 +103,6 @@ const navigate = useNavigate();
         </button>
       </form>
 
-      {/* Change Password */}
       <form onSubmit={handleChangePassword} className="bg-white dark:bg-gray-800 rounded-2xl border border-slate-200 dark:border-gray-700 p-6 mb-6 shadow-sm">
         <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
           <Lock className="w-5 h-5 text-[#2ebd85]" />
@@ -154,7 +152,6 @@ const navigate = useNavigate();
         </button>
       </form>
 
-      {/* Delete Account */}
       <div className="bg-white dark:bg-gray-800 rounded-2xl border border-rose-200 dark:border-rose-800/50 p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-rose-600 dark:text-rose-400 mb-2 flex items-center gap-2">
           <Trash2 className="w-5 h-5" />

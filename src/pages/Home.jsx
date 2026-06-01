@@ -143,7 +143,6 @@ fetchActiveStockCount();
         <span className="text-slate-600 dark:text-slate-400 mb-6 inline-block border-[#2ebd85] border-b-2">Real-time stock prices and market insights at your fingertips</span>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch" style={{ gridAutoRows: '1fr' }}>
-          {/* Market Stats – stacked vertically */}
           <div className="flex flex-col gap-4 mt-3">
             {marketStats.map((stat, index) => (
               <div
@@ -175,7 +174,6 @@ fetchActiveStockCount();
             ))}
           </div>
 
-          {/* Analyst Recommendation Trends */}
           <div className="md:col-span-1 p-0.5">
             <div className="w-full h-full min-h-80">
               <AnalystChart
@@ -189,8 +187,7 @@ fetchActiveStockCount();
               />
             </div>
           </div>
-
-          {/* Heatmap Widget – spans 1 col, same height as siblings */}
+          
           <div className="md:col-span-1 p-0.5">
             <div className="relative overflow-hidden rounded-lg h-full min-h-80 max-h-112">
               <StockHeatmap

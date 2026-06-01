@@ -275,7 +275,6 @@ export default function AIInsightsSidebar({ open, onClose }) {
 
   return (
     <>
-      {/* Backdrop */}
       {open && (
         <div
           className="fixed inset-0 bg-black/30 z-40 transition-opacity"
@@ -283,13 +282,11 @@ export default function AIInsightsSidebar({ open, onClose }) {
         />
       )}
 
-      {/* Sidebar panel */}
       <aside
         className={`fixed top-0 right-0 h-full w-80 bg-white dark:bg-gray-900 border-l border-slate-200 dark:border-gray-700 shadow-2xl z-50 flex flex-col transform transition-transform duration-300 ease-in-out ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 shrink-0">
           <div className="flex items-center gap-2">
             <Brain className="w-5 h-5 text-[#2ebd85]" />
@@ -303,10 +300,8 @@ export default function AIInsightsSidebar({ open, onClose }) {
           </button>
         </div>
 
-        {/* Scrollable body */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5">
 
-          {/* ── Market Overview ── */}
           <section>
             <div className="mb-2 flex items-center gap-1.5">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-gray-400 flex items-center gap-1.5">
@@ -333,7 +328,6 @@ export default function AIInsightsSidebar({ open, onClose }) {
             </div>
           </section>
 
-          {/* ── AI Sentiment Analysis ── */}
           <section>
             <div className="mb-2 flex items-center justify-between">
               <div className="flex items-start gap-2">
@@ -376,7 +370,6 @@ export default function AIInsightsSidebar({ open, onClose }) {
             </div>
           </section>
 
-          {/* ── AI Alerts ── */}
           <section>
             <div className="mb-2 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -415,7 +408,6 @@ export default function AIInsightsSidebar({ open, onClose }) {
 
         </div>
 
-        {/* Footer */}
         <div className="px-4 py-3 border-t border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 shrink-0">
           <p className="text-xs text-slate-500 dark:text-gray-400 text-center">
             AI insights are for informational purposes only and do not constitute financial advice.

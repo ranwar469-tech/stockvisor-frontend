@@ -69,7 +69,6 @@ export default function Register() {
     <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900 px-4 py-8">
       <div className="w-full max-w-md">
 
-        {/* Logo / Brand */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#2ebd85] mb-4 shadow-lg">
             <TrendingUp className="w-8 h-8 text-white" />
@@ -80,10 +79,8 @@ export default function Register() {
           </p>
         </div>
 
-        {/* Card */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-slate-200 dark:border-gray-700 p-8">
 
-          {/* Global Error */}
           {error && (
             <div className="mb-5 px-4 py-3 rounded-lg bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-sm">
               {error}
@@ -92,7 +89,6 @@ export default function Register() {
 
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
 
-            {/* Username */}
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1.5">
                 Username
@@ -112,7 +108,6 @@ export default function Register() {
               )}
             </div>
 
-            {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1.5">
                 Email address
@@ -132,7 +127,6 @@ export default function Register() {
               )}
             </div>
 
-            {/* Password */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1.5">
                 Password
@@ -162,7 +156,6 @@ export default function Register() {
               )}
             </div>
 
-            {/* Confirm Password */}
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1.5">
                 Confirm password
@@ -192,12 +185,10 @@ export default function Register() {
               )}
             </div>
 
-            {/* Terms notice */}
             <p className="text-xs text-slate-400 dark:text-gray-500">
               By registering you agree that StockVisor content is for informational purposes only and does not constitute financial advice.
             </p>
 
-            {/* Submit */}
             <button
               type="submit"
               disabled={loading}
@@ -212,7 +203,6 @@ export default function Register() {
             </button>
           </form>
 
-          {/* Divider */}
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-slate-200 dark:border-gray-700" />

@@ -34,9 +34,7 @@ export function AuthProvider({ children }) {
     return () => window.removeEventListener('auth:expired', handleExpired);
   }, [logout]);
 
-  /**
-   * Login — JSON body with email + password
-   */
+
   const login = async (email, password) => {
     const { data } = await api.post('/auth/login', { email, password });
 
@@ -46,9 +44,7 @@ export function AuthProvider({ children }) {
     return data;
   };
 
-  /**
-   * Register — JSON body with username, email, password
-   */
+
   const register = async (username, email, password) => {
     const { data } = await api.post('/auth/register', { username, email, password });
     localStorage.setItem('sv_token', data.access_token);

@@ -282,7 +282,6 @@ export default function Tips() {
 
   return (
     <div className="space-y-8">
-      {/* Page Header */}
       <div className="mb-4">
         <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Trading Tutorials &amp; Learning</h2>
         <span className="text-slate-600 dark:text-slate-400 mb-6 inline-block border-[#2ebd85] border-b-2">Master the essentials of stock trading and investing with these essential tutorials designed for new traders</span>

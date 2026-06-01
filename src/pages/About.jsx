@@ -80,7 +80,6 @@ export default function About() {
 
   return (
     <div className="space-y-8">
-      {/* Page Header */}
       <div className="mb-2">
         <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">About StockVisor</h2>
         <span className="text-slate-600 dark:text-slate-400 mb-6 inline-block border-[#2ebd85] border-b-2">
@@ -88,7 +87,6 @@ export default function About() {
         </span>
       </div>
 
-      {/* Mission */}
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-[#2ebd85]">
         <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">Our Mission</h3>
         <p className="text-slate-600 dark:text-gray-400 leading-relaxed">
@@ -96,7 +94,6 @@ export default function About() {
         </p>
       </div>
 
-      {/* Features grid */}
       <div>
         <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Platform Features</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -117,7 +114,6 @@ export default function About() {
         </div>
       </div>
 
-      {/* Tech stack */}
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-gray-700">
         <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Built With</h3>
         <div className="flex flex-wrap gap-2">
@@ -132,7 +128,6 @@ export default function About() {
         </div>
       </div>
 
-      {/* CTA */}
       <div className="bg-linear-to-r from-[#2ebd85] to-[#26a070] rounded-xl p-8 shadow-sm text-white">
         <h3 className="text-2xl font-bold mb-2">Ready to get started?</h3>
         <p className="text-white/80 mb-5">

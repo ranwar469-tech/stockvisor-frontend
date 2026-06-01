@@ -1,10 +1,7 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-/**
- * Wraps any route that requires authentication.
- * Redirects unauthenticated users to /login, preserving the intended path.
- */
+
 export default function ProtectedRoute() {
   const { isAuthenticated, loading } = useAuth();
 

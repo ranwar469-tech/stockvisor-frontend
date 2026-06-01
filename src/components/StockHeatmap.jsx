@@ -71,7 +71,6 @@ const StockHeatmap = ({ headerAction = null }) => {
 
   useEffect(() => {
     const fetchHeatmapData = async () => {
-      // ── Check sessionStorage cache first ──
       try {
         const cachedRaw = sessionStorage.getItem(CACHE_KEY);
         if (cachedRaw) {
@@ -84,21 +83,18 @@ const StockHeatmap = ({ headerAction = null }) => {
           }
         }
       } catch {
-        // Corrupted cache — ignore and fetch fresh
         sessionStorage.removeItem(CACHE_KEY);
       }
 
       try {
         const { data: flatData } = await api.get('/api/heatmap');
 
-        // Cache the raw API response in sessionStorage
         try {
           sessionStorage.setItem(
             CACHE_KEY,
             JSON.stringify({ data: flatData, timestamp: Date.now() })
           );
         } catch {
-          // sessionStorage full or unavailable — non-critical
         }
 
         buildChartData(flatData);
@@ -112,13 +108,11 @@ const StockHeatmap = ({ headerAction = null }) => {
     };
 
     const buildChartData = (flatData) => {
-      // Header Row: [ID, Parent, Size, ColorValue]
       const dataForChart = [
         ["ID", "Parent", "Market Cap (size)", "Market Change (color)"],
-        ["Market", null, 0, 0], // The Root node
+        ["Market", null, 0, 0],
       ];
 
-      // Sector nodes with weighted average change based on market cap
       const sectorStats = flatData.reduce((acc, item) => {
         const sector = item.sector || 'Other';
         const mcap = Number(item.mcap) || 0;
@@ -141,13 +135,12 @@ const StockHeatmap = ({ headerAction = null }) => {
         dataForChart.push([sector, "Market", 0, sectorChange]);
       });
 
-      // Stock nodes (sqrt compresses huge caps so smaller stocks get readable tiles)
       flatData.forEach((stock) => {
         dataForChart.push([
-          stock.stock,                    // Unique ID (Ticker)
-          stock.sector || 'Other',        // Parent ID (Sector)
-          Math.sqrt(stock.mcap || 1),     // Size logic – compressed
-          stock.change || 0,              // Color logic
+          stock.stock,                  
+          stock.sector || 'Other',      
+          Math.sqrt(stock.mcap || 1),    
+          stock.change || 0,            
         ]);
       });
 
@@ -195,12 +188,10 @@ const StockHeatmap = ({ headerAction = null }) => {
         <div className="flex items-center gap-2 text-[10px]">
           <span className="text-red-400 font-medium">Loss</span>
           <div className="relative flex flex-col items-center gap-0.5">
-            {/* Gradient track */}
             <div
               className="w-32 h-2.5 rounded-full"
               style={{ background: 'linear-gradient(to right, #b91c1c, #1f2937, #15803d)' }}
             />
-            {/* Tick marks */}
             <div className="w-32 flex justify-between px-0.5">
               <span className="w-px h-1 bg-slate-400 dark:bg-gray-500" />
               <span className="w-px h-1 bg-slate-400 dark:bg-gray-500" />

@@ -5,20 +5,14 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Set it globally for the CUSTOM api instance
 api.defaults.headers.common['ngrok-skip-browser-warning'] = 'true';
 
-// Attach JWT token to every request if present
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('sv_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-
-// On 401, clear stored auth — but NOT for auth endpoints themselves.
-// Instead of hard-redirecting (which destroys React state), dispatch a custom
-// event so AuthContext can handle logout + redirect through React Router.
 api.interceptors.response.use(
   (res) => res,
   (error) => {

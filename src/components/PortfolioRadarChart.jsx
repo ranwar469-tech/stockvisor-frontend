@@ -7,7 +7,6 @@ const PortfolioRadarChart = ({ holdings = [] }) => {
 
     const KNOWN_SECTORS = new Set(['Technology', 'Energy', 'Financial Services', 'Healthcare']);
 
-    // Sum total invested per sector, grouping unknowns as 'Other'
     const sectorMap = {};
     let grandTotal = 0;
 

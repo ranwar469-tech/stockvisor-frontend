@@ -15,16 +15,13 @@ import AdminRoute from "./components/AdminRoute";
 import { useTheme } from "./hooks/useTheme";
 
 function App() {
-  // Apply theme at the root so all pages (including login/register) get dark mode
   useTheme();
 
   return (
     <Routes>
-      {/* Public auth routes — no nav/layout wrapper */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
-      {/* Public app routes — no auth required to browse */}
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="about" element={<About />} />

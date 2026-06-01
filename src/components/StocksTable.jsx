@@ -41,7 +41,6 @@ export default function StocksTable({ headerAction = null }) {
     }, 3000);
   }, []);
 
-  // Debounced search against /stocks/search
   useEffect(() => {
     if (!searchQuery.trim()) {
       setSearchResults([]);
@@ -65,7 +64,6 @@ export default function StocksTable({ headerAction = null }) {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handleClick = (e) => {
       if (searchRef.current && !searchRef.current.contains(e.target)) {
@@ -82,7 +80,6 @@ export default function StocksTable({ headerAction = null }) {
     };
   }, []);
 
-  // Load user's watchlist from backend when authenticated
   useEffect(() => {
     if (!isAuthenticated) {
       setFavorites([]);
@@ -98,7 +95,6 @@ export default function StocksTable({ headerAction = null }) {
     })();
   }, [isAuthenticated]);
 
-  // Add a searched stock to favorites (syncs with backend watchlist)
   const addFromSearch = async (symbol) => {
     setShowDropdown(false);
     setSearchQuery('');
@@ -106,22 +102,20 @@ export default function StocksTable({ headerAction = null }) {
       triggerAddedToast('Log in to add to favorites');
       return;
     }
-    // Already in the stocks list?
     const existing = stocks.find(s => s.symbol === symbol);
     if (existing) {
       if (!favorites.includes(symbol)) {
         setFavorites(prev => [...prev, symbol]);
-        try { await api.post('/watchlist/', { symbol }); } catch { /* ignore dupes */ }
+        try { await api.post('/watchlist/', { symbol }); } catch { }
         triggerAddedToast();
       }
       return;
     }
-    // Fetch quote and append
     try {
       const { data } = await api.get(`/stocks/quote/${symbol}`);
       setStocks(prev => [...prev, data]);
       setFavorites(prev => [...prev, symbol]);
-      try { await api.post('/watchlist/', { symbol }); } catch { /* ignore dupes */ }
+      try { await api.post('/watchlist/', { symbol }); } catch { }
       triggerAddedToast();
     } catch (err) {
       console.error('Failed to fetch quote for', symbol, err);
@@ -166,7 +160,6 @@ export default function StocksTable({ headerAction = null }) {
           await api.post('/watchlist/', { symbol });
         }
       } catch (err) {
-        // Revert on failure
         console.error('Watchlist sync failed:', err);
         setFavorites(prev =>
           isFav ? [...prev, symbol] : prev.filter(s => s !== symbol)
@@ -181,7 +174,6 @@ export default function StocksTable({ headerAction = null }) {
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm h-[448.788px] border border-[#2ebd85] dark:border-[#2ebd85] overflow-hidden transition-colors duration-300 flex flex-col">
-      {/* Tabs */}
       <div className="px-6 py-4 border-b border-slate-200 dark:border-gray-700 flex items-center space-x-4">
         <button
           onClick={() => setActiveTab('all')}
@@ -218,7 +210,6 @@ export default function StocksTable({ headerAction = null }) {
             />
           </div>
 
-          {/* Search results dropdown */}
           {showDropdown && (
             <div className="absolute top-full left-0 mt-1 w-72 max-h-60 overflow-y-auto rounded-lg border border-[#2ebd85] bg-white dark:bg-gray-800 shadow-lg z-50">
               {searchLoading ? (
@@ -255,7 +246,6 @@ export default function StocksTable({ headerAction = null }) {
         </button>
       </div>
 
-      {/* Loading / Error / Table */}
       {loading && stocks.length === 0 ? (
         <div className="flex-1 min-h-0 flex items-center justify-center text-slate-500 dark:text-gray-400">
           <RefreshCw className="w-5 h-5 animate-spin mr-2" />

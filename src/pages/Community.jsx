@@ -113,7 +113,6 @@ export default function Community() {
 
   return (
     <div className="space-y-8">
-      {/* Page Header */}
       <div className="mb-4">
         <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Community</h2>
         <span className="text-slate-600 dark:text-slate-400 mb-6 inline-block border-[#2ebd85] border-b-2">Connect with traders and share investment insights</span>
@@ -126,12 +125,10 @@ export default function Community() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Discussions */}
         <div className="lg:col-span-2">
           <Discussion />
         </div>
 
-        {/* Top Contributors */}
         <div>
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-[#2ebd85] overflow-hidden transition-colors duration-300">
             <div className="px-6 py-4 border-b border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-700 flex items-center justify-between">

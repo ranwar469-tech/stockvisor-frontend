@@ -198,7 +198,7 @@ fetchActiveStockCount();
                   <TutorialInfoButton
                     label="market heatmap"
                     onClick={() => openTutorial('stockHeatmap')}
-                    variant="dark"
+                    variant="default"
                   />
                 }
               />

@@ -221,11 +221,14 @@ export default function TutorialPopup({
 
         {showVideo && previewVideoUrl && (
           <div className="mt-5">
-            <div className="relative w-full overflow-hidden rounded-xl border border-slate-200 dark:border-gray-700" style={{ paddingTop: '56.25%' }}>
+            <div
+              className="relative w-full overflow-hidden rounded-xl border border-slate-200 dark:border-gray-700"
+              style={{ paddingTop: '75%', minHeight: '360px' }}
+            >
               <iframe
                 src={previewVideoUrl}
                 title={`${activeTutorial.title} tutorial video`}
-                allow="autoplay"
+                allow="autoplay; fullscreen"
                 className="absolute inset-0 h-full w-full"
               />
             </div>

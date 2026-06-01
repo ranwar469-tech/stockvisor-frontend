@@ -24,7 +24,7 @@ vi.mock('axios', () => ({
   },
 }));
 
-import api from './api';
+import api from '../../services/api';
 
 describe('api service', () => {
   beforeEach(() => {
